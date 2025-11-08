@@ -1,6 +1,9 @@
 import React from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 function Profile() {
+  const { user } = useAuth();
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -12,9 +15,9 @@ function Profile() {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-gray-800">
-                Muhammed Kullanıcı
+                {user?.name || "Kullanıcı"}
               </h2>
-              <p className="text-gray-600">@muhammed_user</p>
+              <p className="text-gray-600">{user?.username || "@kullanici"}</p>
               <p className="text-gray-500 text-sm mt-1">
                 Haber okumayı seven, teknoloji meraklısı
               </p>

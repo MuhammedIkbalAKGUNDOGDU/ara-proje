@@ -1,8 +1,10 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 function Navigation() {
   const location = useLocation();
+  const { user, logout, isAuthenticated } = useAuth();
 
   const navItems = [
     { path: "/", label: "Ana Sayfa" },
@@ -36,6 +38,35 @@ function Navigation() {
                 {item.label}
               </Link>
             ))}
+            
+            {isAuthenticated() ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-gray-600">
+                  Hoş geldin, {user?.name}
+                </span>
+                <button
+                  onClick={logout}
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                >
+                  Çıkış Yap
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-4">
+                <Link
+                  to="/login"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                >
+                  Giriş Yap
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 transition-colors"
+                >
+                  Kayıt Ol
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

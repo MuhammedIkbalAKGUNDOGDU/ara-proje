@@ -1,27 +1,357 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { API_BASE_URL, API_KEY } from "../config/api";
 
 function Login() {
+  const [step, setStep] = useState(1); // 1: Login, 2: Verify
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const [verifyData, setVerifyData] = useState({
+    email: "",
+    code: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleVerifyChange = (e) => {
+    const { name, value } = e.target;
+    setVerifyData({
+      ...verifyData,
+      [name]: value,
+    });
+    setError("");
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Giriş işlemi burada yapılacak
-    console.log("Giriş yapılıyor:", formData);
-    alert("Giriş başarılı!");
+    setError("");
+    setLoading(true);
+
+    try {
+      const requestBody = {
+        email: formData.email,
+        password: formData.password,
+      };
+
+      const requestHeaders = {
+        "Content-Type": "application/json",
+        "X-API-KEY": API_KEY,
+      };
+
+      // Request'i konsola yazdır
+      console.log("Login API Request:", {
+        url: `${API_BASE_URL}/auth/login`,
+        method: "POST",
+        headers: requestHeaders,
+        body: requestBody,
+      });
+
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      // Response'u text olarak al, sonra JSON'a çevirmeye çalış
+      const responseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        // JSON değilse, text olarak kullan
+        data = { message: responseText };
+      }
+
+      // Response'u konsola yazdır
+      console.log("Login API Response:", {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        rawResponse: responseText,
+        parsedData: data,
+      });
+
+      if (response.ok) {
+        // Login başarılı, kod doğrulama ekranına geç
+        setVerifyData({
+          email: formData.email,
+          code: "",
+        });
+        setStep(2);
+      } else {
+        setError(
+          data.message || responseText || "Giriş işlemi başarısız oldu!"
+        );
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setError("Bir hata oluştu. Lütfen tekrar deneyin.");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const handleVerifyLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-KEY": API_KEY,
+        },
+        body: JSON.stringify({
+          email: verifyData.email,
+          code: verifyData.code,
+        }),
+      });
+
+      // Response'u text olarak al, sonra JSON'a çevirmeye çalış
+      const responseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        // JSON değilse, text olarak kullan
+        data = { message: responseText };
+      }
+
+      // Response'u konsola yazdır
+      console.log("Verify Login API Response:", {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        rawResponse: responseText,
+        parsedData: data,
+      });
+
+      if (response.ok && data.statusCode === 200) {
+        // Doğrulama başarılı, kullanıcıyı giriş yap
+        // Response formatı: { statusCode: 200, message: "...", data: { token: "..." } }
+        const token = data.data?.token;
+
+        // Token'ı localStorage'a kaydet
+        if (token) {
+          localStorage.setItem("token", token);
+        }
+
+        const userData = {
+          id: data.data?.id || Date.now().toString(),
+          email: verifyData.email,
+          name: data.data?.name || "Kullanıcı",
+          token: token,
+          refreshToken: data.data?.refreshToken,
+          coldStart:
+            data.data?.coldStart !== undefined ? data.data.coldStart : true,
+        };
+        login(userData);
+
+        // Kullanıcı hesap bilgilerini al
+        try {
+          const accountResponse = await fetch(`${API_BASE_URL}/users/account`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-KEY": API_KEY,
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const accountResponseText = await accountResponse.text();
+          let accountData;
+          try {
+            accountData = JSON.parse(accountResponseText);
+          } catch (e) {
+            accountData = { message: accountResponseText };
+          }
+
+          // Konsola çıktıyı yazdır
+          console.log("User Account API Response:", {
+            status: accountResponse.status,
+            statusText: accountResponse.statusText,
+            headers: Object.fromEntries(accountResponse.headers.entries()),
+            rawResponse: accountResponseText,
+            parsedData: accountData,
+          });
+
+          // Account bilgilerini localStorage'a kaydet
+          if (
+            accountResponse.ok &&
+            accountData.statusCode === 200 &&
+            accountData.data
+          ) {
+            localStorage.setItem(
+              "accountData",
+              JSON.stringify(accountData.data)
+            );
+
+            // UserData'yı account bilgileriyle güncelle
+            const updatedUserData = {
+              ...userData,
+              ...accountData.data,
+            };
+            login(updatedUserData);
+
+            alert("Giriş ve doğrulama başarılı!");
+
+            // firstLogin true ise kategori seçim sayfasına, değilse ana sayfaya yönlendir
+            if (accountData.data.firstLogin === true) {
+              navigate("/interests");
+            } else {
+              navigate("/");
+            }
+          } else {
+            // Account API başarısız olsa bile devam et
+            alert("Giriş ve doğrulama başarılı!");
+            navigate("/");
+          }
+        } catch (accountError) {
+          console.error("Account API error:", accountError);
+          // Hata olsa bile devam et
+          alert("Giriş ve doğrulama başarılı!");
+          navigate("/");
+        }
+      } else {
+        setError(data.message || responseText || "Doğrulama kodu hatalı!");
+      }
+    } catch (error) {
+      console.error("Verify Login error:", error);
+      setError("Bir hata oluştu. Lütfen tekrar deneyin.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Kod Doğrulama Ekranı
+  if (step === 2) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          {/* Logo ve Başlık */}
+          <div className="text-center">
+            <div className="mx-auto h-16 w-16 bg-blue-500 rounded-full flex items-center justify-center">
+              <svg
+                className="h-8 w-8 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h2 className="mt-6 text-3xl font-bold text-gray-900">
+              E-posta Doğrulama
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              {verifyData.email} adresine gönderilen doğrulama kodunu girin
+            </p>
+          </div>
+
+          {/* Form */}
+          <form className="mt-8 space-y-6" onSubmit={handleVerifyLogin}>
+            <div className="bg-white rounded-xl shadow-lg p-8 space-y-6">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              {/* Email (readonly) */}
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  E-posta Adresi
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    readOnly
+                    value={verifyData.email}
+                    className="appearance-none relative block w-full px-3 py-3 border border-gray-300 bg-gray-50 text-gray-500 rounded-lg sm:text-sm cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              {/* Doğrulama Kodu */}
+              <div>
+                <label
+                  htmlFor="code"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Doğrulama Kodu
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="code"
+                    name="code"
+                    type="text"
+                    required
+                    value={verifyData.code}
+                    onChange={handleVerifyChange}
+                    maxLength={6}
+                    className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm text-center text-2xl tracking-widest"
+                    placeholder="000000"
+                  />
+                </div>
+              </div>
+
+              {/* Doğrula Butonu */}
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? "Doğrulanıyor..." : "Doğrula"}
+                </button>
+              </div>
+
+              {/* Geri Dön */}
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="text-sm text-blue-600 hover:text-blue-500"
+                >
+                  ← Geri Dön
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // Login Formu
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -59,6 +389,12 @@ function Login() {
         {/* Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="bg-white rounded-xl shadow-lg p-8 space-y-6">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
             {/* Email */}
             <div>
               <label
@@ -104,7 +440,7 @@ function Login() {
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-600 cursor-pointer transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -146,23 +482,8 @@ function Login() {
               </div>
             </div>
 
-            {/* Hatırla ve Şifremi Unuttum */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label
-                  htmlFor="remember-me"
-                  className="ml-2 block text-sm text-gray-900"
-                >
-                  Beni hatırla
-                </label>
-              </div>
-
+            {/* Şifremi Unuttum */}
+            <div className="flex items-center justify-end">
               <div className="text-sm">
                 <a
                   href="#"
@@ -177,7 +498,8 @@ function Login() {
             <div>
               <button
                 type="submit"
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                disabled={loading}
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                   <svg
@@ -192,7 +514,7 @@ function Login() {
                     />
                   </svg>
                 </span>
-                Giriş Yap
+                {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
               </button>
             </div>
 
@@ -250,29 +572,6 @@ function Login() {
             </div>
           </div>
         </form>
-
-        {/* Ana Sayfaya Dön */}
-        <div className="text-center">
-          <Link
-            to="/"
-            className="text-sm text-gray-600 hover:text-gray-900 flex items-center justify-center"
-          >
-            <svg
-              className="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            Ana sayfaya dön
-          </Link>
-        </div>
       </div>
     </div>
   );
