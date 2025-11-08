@@ -1,30 +1,32 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { API_KEY, API_BASE_URL } from "../config/api";
 
 function InterestsSelection() {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
   const [selectedInterests, setSelectedInterests] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // İlgi alanları listesi - her biri için isim ve simge
+  // İlgi alanları listesi - her biri için isim, simge ve API kategori ismi
   const interests = [
-    { id: 1, name: "Teknoloji", icon: "💻" },
-    { id: 2, name: "Spor", icon: "⚽" },
-    { id: 3, name: "Sanat", icon: "🎨" },
-    { id: 4, name: "Müzik", icon: "🎵" },
-    { id: 5, name: "Bilim", icon: "🔬" },
-    { id: 6, name: "Seyahat", icon: "✈️" },
-    { id: 7, name: "Yemek", icon: "🍔" },
-    { id: 8, name: "Film", icon: "🎬" },
-    { id: 9, name: "Kitap", icon: "📚" },
-    { id: 10, name: "Moda", icon: "👗" },
-    { id: 11, name: "Oyun", icon: "🎮" },
-    { id: 12, name: "Doğa", icon: "🌲" },
-    { id: 13, name: "Fotoğraf", icon: "📷" },
-    { id: 14, name: "Eğitim", icon: "📖" },
-    { id: 15, name: "Sağlık", icon: "🏥" },
-    { id: 16, name: "Ekonomi", icon: "💰" },
+    { id: 1, name: "Teknoloji", icon: "💻", category: "technology" },
+    { id: 2, name: "Spor", icon: "⚽", category: "sports" },
+    { id: 3, name: "Sanat", icon: "🎨", category: "art" },
+    { id: 4, name: "Müzik", icon: "🎵", category: "music" },
+    { id: 5, name: "Bilim", icon: "🔬", category: "science" },
+    { id: 6, name: "Seyahat", icon: "✈️", category: "travel" },
+    { id: 7, name: "Yemek", icon: "🍔", category: "food" },
+    { id: 8, name: "Film", icon: "🎬", category: "movies" },
+    { id: 9, name: "Kitap", icon: "📚", category: "books" },
+    { id: 10, name: "Moda", icon: "👗", category: "fashion" },
+    { id: 11, name: "Oyun", icon: "🎮", category: "gaming" },
+    { id: 12, name: "Doğa", icon: "🌲", category: "nature" },
+    { id: 13, name: "Fotoğraf", icon: "📷", category: "photography" },
+    { id: 14, name: "Eğitim", icon: "📖", category: "education" },
+    { id: 15, name: "Sağlık", icon: "🏥", category: "health" },
+    { id: 16, name: "Ekonomi", icon: "💰", category: "economy" },
   ];
 
   const toggleInterest = (interestId) => {
@@ -35,28 +37,157 @@ function InterestsSelection() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selectedInterests.length === 0) {
       alert("Lütfen en az bir ilgi alanı seçiniz!");
       return;
     }
 
-    // Seçilen ilgi alanlarını kaydet (localStorage'a veya API'ye gönderilebilir)
-    const selectedInterestsData = interests.filter((interest) =>
-      selectedInterests.includes(interest.id)
-    );
-    
-    // Kullanıcı verisine ilgi alanlarını ekle ve coldStart'ı false yap
-    const updatedUserData = {
-      interests: selectedInterestsData,
-      coldStart: false,
-    };
+    setLoading(true);
 
-    // AuthContext'i güncelle
-    updateUser(updatedUserData);
+    try {
+      // Seçilen ilgi alanlarının kategori isimlerini al
+      const selectedCategories = interests
+        .filter((interest) => selectedInterests.includes(interest.id))
+        .map((interest) => interest.category);
 
-    // Ana sayfaya yönlendir
-    navigate("/");
+      // Token'ı localStorage'dan al
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("Oturum bilgisi bulunamadı. Lütfen tekrar giriş yapın.");
+        navigate("/login");
+        return;
+      }
+
+      // Onboarding API'ye POST isteği gönder
+      console.log("Onboarding API Request:", {
+        url: "http://34.61.204.204:8004/api/onboarding",
+        method: "POST",
+        body: { categories: selectedCategories },
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-KEY": API_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      let onboardingResponse;
+      try {
+        onboardingResponse = await fetch(
+          "http://34.61.204.204:8004/api/onboarding",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": API_KEY,
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              categories: selectedCategories,
+            }),
+          }
+        );
+      } catch (fetchError) {
+        console.error("Onboarding fetch error:", fetchError);
+        throw new Error(
+          `API'ye bağlanılamadı. Lütfen internet bağlantınızı kontrol edin veya daha sonra tekrar deneyin. Hata: ${fetchError.message}`
+        );
+      }
+
+      const responseText = await onboardingResponse.text();
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch (e) {
+        responseData = { message: responseText };
+      }
+
+      // Konsola çıktıyı yazdır
+      console.log("Onboarding API Response:", {
+        status: onboardingResponse.status,
+        statusText: onboardingResponse.statusText,
+        headers: Object.fromEntries(onboardingResponse.headers.entries()),
+        rawResponse: responseText,
+        parsedData: responseData,
+      });
+
+      if (onboardingResponse.ok) {
+        // updateFirstLogin endpoint'ine PUT isteği gönder
+        try {
+          const updateFirstLoginResponse = await fetch(
+            `${API_BASE_URL}/users/updateFirstLogin`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                "X-API-KEY": API_KEY,
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          const updateResponseText = await updateFirstLoginResponse.text();
+          let updateResponseData;
+          try {
+            updateResponseData = JSON.parse(updateResponseText);
+          } catch (e) {
+            updateResponseData = { message: updateResponseText };
+          }
+
+          // Konsola çıktıyı yazdır
+          console.log("Update First Login API Response:", {
+            status: updateFirstLoginResponse.status,
+            statusText: updateFirstLoginResponse.statusText,
+            headers: Object.fromEntries(
+              updateFirstLoginResponse.headers.entries()
+            ),
+            rawResponse: updateResponseText,
+            parsedData: updateResponseData,
+          });
+        } catch (updateError) {
+          console.error("Update First Login error:", updateError);
+          // Hata olsa bile devam et
+        }
+
+        // Seçilen ilgi alanlarını kaydet
+        const selectedInterestsData = interests.filter((interest) =>
+          selectedInterests.includes(interest.id)
+        );
+
+        // Kullanıcı verisine ilgi alanlarını ekle ve firstLogin'ı false yap
+        const updatedUserData = {
+          interests: selectedInterestsData,
+          firstLogin: false,
+        };
+
+        // Account data'yı güncelle
+        const accountData = JSON.parse(
+          localStorage.getItem("accountData") || "{}"
+        );
+        accountData.firstLogin = false;
+        localStorage.setItem("accountData", JSON.stringify(accountData));
+
+        // AuthContext'i güncelle
+        updateUser(updatedUserData);
+
+        alert("İlgi alanlarınız başarıyla kaydedildi!");
+        navigate("/");
+      } else {
+        alert(
+          responseData.message ||
+            "İlgi alanları kaydedilirken bir hata oluştu. Lütfen tekrar deneyin."
+        );
+      }
+    } catch (error) {
+      console.error("Onboarding error:", error);
+      const errorMessage =
+        error.message ||
+        "İlgi alanları kaydedilirken bir hata oluştu. Lütfen tekrar deneyin.";
+      alert(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -153,17 +284,17 @@ function InterestsSelection() {
           <div className="mt-8">
             <button
               onClick={handleSubmit}
-              disabled={selectedInterests.length === 0}
+              disabled={selectedInterests.length === 0 || loading}
               className={`
                 w-full py-3 px-4 rounded-lg text-sm font-medium transition-colors
                 ${
-                  selectedInterests.length === 0
+                  selectedInterests.length === 0 || loading
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 }
               `}
             >
-              Devam Et
+              {loading ? "Kaydediliyor..." : "Devam Et"}
             </button>
           </div>
         </div>
@@ -173,4 +304,3 @@ function InterestsSelection() {
 }
 
 export default InterestsSelection;
-
