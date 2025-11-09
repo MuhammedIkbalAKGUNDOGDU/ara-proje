@@ -147,7 +147,7 @@ function NewsFeed() {
 
       try {
         console.log("Feed API Request:", {
-          url: `http://34.61.204.204:8001/api/feed/${userId}`,
+          url: `http://35.239.116.204:8001/api/feed/${userId}`,
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -157,7 +157,7 @@ function NewsFeed() {
         });
 
         const response = await fetch(
-          `http://34.61.204.204:8001/api/feed/${userId}`,
+          `http://35.239.116.204:8001/api/feed/${userId}`,
           {
             method: "GET",
             headers: {

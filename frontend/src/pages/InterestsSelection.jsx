@@ -62,7 +62,7 @@ function InterestsSelection() {
 
       // Onboarding API'ye POST isteği gönder
       console.log("Onboarding API Request:", {
-        url: "http://34.61.204.204:8004/api/onboarding",
+        url: "http://35.239.116.204:8004/api/onboarding",
         method: "POST",
         body: { categories: selectedCategories },
         headers: {
@@ -75,7 +75,7 @@ function InterestsSelection() {
       let onboardingResponse;
       try {
         onboardingResponse = await fetch(
-          "http://34.61.204.204:8004/api/onboarding",
+          "http://35.239.116.204:8004/api/onboarding",
           {
             method: "POST",
             headers: {

@@ -134,7 +134,7 @@ function Register() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+      const response = await fetch(`${API_BASE_URL}/auth/verifyReg`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
