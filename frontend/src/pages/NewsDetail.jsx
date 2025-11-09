@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Heart, ThumbsDown, Bookmark, Share2 } from "lucide-react";
 import { API_KEY } from "../config/api";
 
@@ -28,6 +28,7 @@ const validateImageUrl = (url) => {
 function NewsDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [news, setNews] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
@@ -35,6 +36,11 @@ function NewsDetail() {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageSrc, setImageSrc] = useState(DEFAULT_NEWS_IMAGE);
+  
+  // Zaman takibi
+  const detailViewStartTime = useRef(null);
+  const cardViewDuration = useRef(location.state?.cardViewDuration || 0);
+  const newsTitleRef = useRef("Yükleniyor...");
 
   useEffect(() => {
     const fetchNewsDetail = async () => {
@@ -95,6 +101,7 @@ function NewsDetail() {
               sentiment_score: foundNews.sentiment_score || null,
             };
             setNews(formattedNews);
+            newsTitleRef.current = formattedNews.title;
             setImageSrc(validatedImage || DEFAULT_NEWS_IMAGE);
           }
         }
@@ -108,6 +115,28 @@ function NewsDetail() {
     if (id) {
       fetchNewsDetail();
     }
+  }, [id]);
+
+  // Detay sayfası görünür olduğunda zaman saymaya başla
+  useEffect(() => {
+    // Sayfa yüklendiğinde hemen başlat
+    detailViewStartTime.current = Date.now();
+    
+    // Sayfa kapatıldığında veya navigate edildiğinde konsola yazdır
+    return () => {
+      if (detailViewStartTime.current !== null) {
+        const detailViewDuration = Date.now() - detailViewStartTime.current;
+        const totalCardViewDuration = cardViewDuration.current;
+        
+        console.log("=== Haber Görüntüleme İstatistikleri ===");
+        console.log(`Haber ID: ${id}`);
+        console.log(`Haber Başlığı: ${newsTitleRef.current}`);
+        console.log(`Kart Görüntüleme Süresi: ${(totalCardViewDuration / 1000).toFixed(2)} saniye`);
+        console.log(`Detay Sayfası Süresi: ${(detailViewDuration / 1000).toFixed(2)} saniye`);
+        console.log(`Toplam Süre: ${((totalCardViewDuration + detailViewDuration) / 1000).toFixed(2)} saniye`);
+        console.log("========================================");
+      }
+    };
   }, [id]);
 
   const handleImageError = (e) => {

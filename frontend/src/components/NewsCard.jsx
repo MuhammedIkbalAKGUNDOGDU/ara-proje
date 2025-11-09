@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Heart,
-  ThumbsDown,
-  Bookmark,
   Share2,
+  X,
   Palette,
   Laptop,
   Trophy,
@@ -143,10 +141,10 @@ const getCategoryGradient = (category) => {
 
 function NewsCard({ news, isActive, onNext, onPrevious }) {
   const navigate = useNavigate();
-  const [isLiked, setIsLiked] = useState(false);
-  const [isDisliked, setIsDisliked] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isNotInterested, setIsNotInterested] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const cardViewStartTime = useRef(null);
+  const cardViewDuration = useRef(0);
   const [imageSrc, setImageSrc] = useState(() => {
     // İlk yüklemede geçerli bir URL kontrolü yap
     const url = news.image;
@@ -162,45 +160,55 @@ function NewsCard({ news, isActive, onNext, onPrevious }) {
     }
   });
 
+  // Kart görünür olduğunda zaman saymaya başla
+  useEffect(() => {
+    if (isActive) {
+      cardViewStartTime.current = Date.now();
+      cardViewDuration.current = 0;
+    } else if (cardViewStartTime.current !== null) {
+      // Kart görünmez olduğunda süreyi hesapla
+      cardViewDuration.current = Date.now() - cardViewStartTime.current;
+      cardViewStartTime.current = null;
+    }
+  }, [isActive]);
+
   const handleCardClick = (e) => {
     // Butonlara tıklanırsa navigate etme
     if (e.target.closest("button")) {
       return;
     }
-    navigate(`/news/${news.id}`);
-  };
 
-  const handleLike = (e) => {
-    e.stopPropagation();
-    setIsLiked(!isLiked);
-    if (isDisliked) {
-      setIsDisliked(false);
+    // Kart görünürken geçen süreyi hesapla
+    if (cardViewStartTime.current !== null) {
+      cardViewDuration.current = Date.now() - cardViewStartTime.current;
     }
+
+    // Süreyi state ile detay sayfasına gönder
+    navigate(`/news/${news.id}`, {
+      state: {
+        cardViewDuration: cardViewDuration.current,
+      },
+    });
   };
 
-  const handleDislike = (e) => {
+  const handleNotInterested = (e) => {
     e.stopPropagation();
-    setIsDisliked(!isDisliked);
-    if (isLiked) {
-      setIsLiked(false);
-    }
-  };
-
-  const handleBookmark = (e) => {
-    e.stopPropagation();
-    setIsBookmarked(!isBookmarked);
+    setIsNotInterested(true);
+    // İlgilenmiyorum işlemi - haber atlanabilir veya API'ye bildirilebilir
+    // Şimdilik sadece state güncelleniyor
   };
 
   const handleShare = (e) => {
     e.stopPropagation();
+    const shareUrl = `${window.location.origin}/news/${news.id}`;
     if (navigator.share) {
       navigator.share({
         title: news.title,
         text: news.summary || news.content,
-        url: window.location.href,
+        url: shareUrl,
       });
     } else {
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(shareUrl);
       alert("Link kopyalandı!");
     }
   };
@@ -297,55 +305,24 @@ function NewsCard({ news, isActive, onNext, onPrevious }) {
 
         {/* Alt etkileşim butonları */}
         <div className="absolute right-2 sm:right-4 bottom-16 sm:bottom-20 flex flex-col space-y-3 sm:space-y-4">
+          {/* İlgilenmiyorum Butonu */}
           <button
-            onClick={handleLike}
+            onClick={handleNotInterested}
             className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-              isLiked
-                ? "bg-red-500 text-white"
-                : "bg-white/20 backdrop-blur-sm text-white hover:bg-white/30"
-            }`}
-          >
-            <Heart
-              className="w-6 h-6"
-              fill={isLiked ? "currentColor" : "none"}
-              stroke="currentColor"
-            />
-          </button>
-
-          {/* Dislike Butonu */}
-          <button
-            onClick={handleDislike}
-            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-              isDisliked
+              isNotInterested
                 ? "bg-gray-500 text-white"
                 : "bg-white/20 backdrop-blur-sm text-white hover:bg-white/30"
             }`}
+            title="İlgilenmiyorum"
           >
-            <ThumbsDown
-              className="w-6 h-6"
-              fill={isDisliked ? "currentColor" : "none"}
-              stroke="currentColor"
-            />
+            <X className="w-6 h-6" />
           </button>
 
-          <button
-            onClick={handleBookmark}
-            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-              isBookmarked
-                ? "bg-yellow-500 text-white"
-                : "bg-white/20 backdrop-blur-sm text-white hover:bg-white/30"
-            }`}
-          >
-            <Bookmark
-              className="w-6 h-6"
-              fill={isBookmarked ? "currentColor" : "none"}
-              stroke="currentColor"
-            />
-          </button>
-
+          {/* Paylaş Butonu */}
           <button
             onClick={handleShare}
             className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-all duration-300 flex items-center justify-center"
+            title="Paylaş"
           >
             <Share2 className="w-6 h-6" />
           </button>
