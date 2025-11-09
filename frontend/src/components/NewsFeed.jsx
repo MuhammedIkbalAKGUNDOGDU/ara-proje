@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import NewsCard from "./NewsCard";
 import { newsData } from "../data/newsData";
+import { useAuth } from "../contexts/AuthContext";
+import { API_KEY } from "../config/api";
 
 function NewsFeed() {
+  const { user } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
   const containerRef = useRef(null);
@@ -130,6 +133,64 @@ function NewsFeed() {
       });
     }
   }, [currentIndex]);
+
+  // Sayfa yüklendiğinde Feed API çağrısı yap
+  useEffect(() => {
+    const fetchFeed = async () => {
+      if (!user || !user.id) {
+        console.warn("User ID bulunamadı");
+        return;
+      }
+
+      const userId = user.id;
+      const token = localStorage.getItem("token");
+
+      try {
+        console.log("Feed API Request:", {
+          url: `http://34.61.204.204:8001/api/feed/${userId}`,
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": API_KEY,
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const response = await fetch(
+          `http://34.61.204.204:8001/api/feed/${userId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": API_KEY,
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const responseText = await response.text();
+        let responseData;
+        try {
+          responseData = JSON.parse(responseText);
+        } catch (e) {
+          responseData = { message: responseText };
+        }
+
+        // Konsola çıktıyı yazdır
+        console.log("Feed API Response:", {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+          rawResponse: responseText,
+          parsedData: responseData,
+        });
+      } catch (error) {
+        console.error("Feed API error:", error);
+      }
+    };
+
+    fetchFeed();
+  }, [user]);
 
   return (
     <div
