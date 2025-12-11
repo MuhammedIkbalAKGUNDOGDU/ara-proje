@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Heart, ThumbsDown, Bookmark, Share2 } from "lucide-react";
-import { API_KEY } from "../config/api";
+import { API_KEY, FEED_API_BASE_URL } from "../config/api";
 
 // Default haber görseli
 const DEFAULT_NEWS_IMAGE =
@@ -50,7 +50,7 @@ function NewsDetail() {
       try {
         // Önce feed'den haberleri çek ve ilgili haberi bul
         const response = await fetch(
-          `http://35.239.116.204:8001/api/feed/${userId}`,
+          `${FEED_API_BASE_URL}/feed/${userId}`,
           {
             method: "GET",
             headers: {

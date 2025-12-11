@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import NewsCard from "./NewsCard";
 import { useAuth } from "../contexts/AuthContext";
-import { API_KEY } from "../config/api";
+import { API_KEY, FEED_API_BASE_URL } from "../config/api";
 
 // Görsel URL'sini doğrula
 const validateImageUrl = (url) => {
@@ -63,20 +63,34 @@ function NewsFeed() {
         scroll-snap-type: y mandatory;
         overflow-y: auto;
         height: 100vh;
+        width: 100%;
       }
       
       .news-item {
         scroll-snap-align: start;
         scroll-snap-stop: always;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
       }
       
       .news-container::-webkit-scrollbar {
-        display: none;
+        width: 8px;
       }
       
-      .news-container {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+      .news-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      
+      .news-container::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+      }
+      
+      .news-container::-webkit-scrollbar-thumb:hover {
+        background: #555;
       }
     `;
     document.head.appendChild(style);
@@ -152,7 +166,8 @@ function NewsFeed() {
   // Scroll pozisyonunu güncelle
   useEffect(() => {
     if (containerRef.current && newsData.length > 0) {
-      const scrollPosition = currentIndex * window.innerHeight;
+      const itemHeight = containerRef.current.scrollHeight / newsData.length;
+      const scrollPosition = currentIndex * itemHeight;
       containerRef.current.scrollTo({
         top: scrollPosition,
         behavior: "smooth",
@@ -169,7 +184,8 @@ function NewsFeed() {
       if (isScrolling) return; // Programatik scroll sırasında çalışmasın
 
       const scrollTop = container.scrollTop;
-      const newIndex = Math.round(scrollTop / window.innerHeight);
+      const itemHeight = container.scrollHeight / newsData.length;
+      const newIndex = Math.round(scrollTop / itemHeight);
 
       if (
         newIndex !== currentIndex &&
@@ -198,7 +214,7 @@ function NewsFeed() {
 
       try {
         console.log("Feed API Request:", {
-          url: `http://35.239.116.204:8001/api/feed/${userId}`,
+          url: `${FEED_API_BASE_URL}/feed/${userId}`,
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -208,7 +224,7 @@ function NewsFeed() {
         });
 
         const response = await fetch(
-          `http://35.239.116.204:8001/api/feed/${userId}`,
+          `${FEED_API_BASE_URL}/feed/${userId}`,
           {
             method: "GET",
             headers: {

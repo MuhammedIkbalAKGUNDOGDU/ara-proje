@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { API_KEY, API_BASE_URL } from "../config/api";
+import { API_KEY, API_BASE_URL, ONBOARDING_API_BASE_URL } from "../config/api";
 
 function InterestsSelection() {
   const navigate = useNavigate();
@@ -62,7 +62,7 @@ function InterestsSelection() {
 
       // Onboarding API'ye POST isteği gönder
       console.log("Onboarding API Request:", {
-        url: "http://35.239.116.204:8004/api/onboarding",
+        url: `${ONBOARDING_API_BASE_URL}/onboarding`,
         method: "POST",
         body: { categories: selectedCategories },
         headers: {
@@ -75,7 +75,7 @@ function InterestsSelection() {
       let onboardingResponse;
       try {
         onboardingResponse = await fetch(
-          "http://35.239.116.204:8004/api/onboarding",
+          `${ONBOARDING_API_BASE_URL}/onboarding`,
           {
             method: "POST",
             headers: {

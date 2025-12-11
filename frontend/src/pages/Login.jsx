@@ -11,7 +11,7 @@ function Login() {
   });
   const [verifyData, setVerifyData] = useState({
     email: "",
-    code: "",
+    link: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -88,10 +88,10 @@ function Login() {
       });
 
       if (response.ok) {
-        // Login başarılı, kod doğrulama ekranına geç
+        // Login başarılı, link doğrulama ekranına geç
         setVerifyData({
           email: formData.email,
-          code: "",
+          link: "",
         });
         setStep(2);
       } else {
@@ -107,12 +107,79 @@ function Login() {
     }
   };
 
+  const handleResendLink = async () => {
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-KEY": API_KEY,
+        },
+        body: JSON.stringify({
+          email: verifyData.email,
+          password: formData.password,
+        }),
+      });
+
+      const responseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        data = { message: responseText };
+      }
+
+      if (response.ok) {
+        alert("Doğrulama linki tekrar gönderildi!");
+      } else {
+        setError(data.message || "Link gönderilemedi. Lütfen tekrar deneyin.");
+      }
+    } catch (error) {
+      console.error("Resend link error:", error);
+      setError("Bir hata oluştu. Lütfen tekrar deneyin.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleVerifyLogin = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
+      // Link'ten token veya verification code'u çıkar
+      const link = verifyData.link.trim();
+      let token = null;
+      
+      // Link formatına göre işlem yap
+      try {
+        // Tam URL ise
+        if (link.startsWith("http://") || link.startsWith("https://")) {
+          const url = new URL(link);
+          token = url.searchParams.get("token") || url.searchParams.get("code") || url.searchParams.get("verification");
+        } else if (link.includes("?")) {
+          // Sadece query string varsa
+          const url = new URL("http://dummy.com?" + link.split("?")[1]);
+          token = url.searchParams.get("token") || url.searchParams.get("code") || url.searchParams.get("verification");
+        } else {
+          // Direkt token/code olabilir
+          token = link;
+        }
+      } catch (urlError) {
+        // URL parse edilemezse, direkt token olarak kullan
+        token = link;
+      }
+      
+      if (!token || token.length === 0) {
+        setError("Geçersiz link formatı! Lütfen e-postanıza gelen tam linki yapıştırın.");
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(`${API_BASE_URL}/auth/verify`, {
         method: "POST",
         headers: {
@@ -121,7 +188,7 @@ function Login() {
         },
         body: JSON.stringify({
           email: verifyData.email,
-          code: verifyData.code,
+          code: token,
         }),
       });
 
@@ -267,7 +334,7 @@ function Login() {
               E-posta Doğrulama
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              {verifyData.email} adresine gönderilen doğrulama kodunu girin
+              {verifyData.email} adresine gönderilen doğrulama linkini girin
             </p>
           </div>
 
@@ -300,27 +367,29 @@ function Login() {
                 </div>
               </div>
 
-              {/* Doğrulama Kodu */}
+              {/* Doğrulama Linki */}
               <div>
                 <label
-                  htmlFor="code"
+                  htmlFor="link"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Doğrulama Kodu
+                  Doğrulama Linki
                 </label>
                 <div className="mt-1">
                   <input
-                    id="code"
-                    name="code"
+                    id="link"
+                    name="link"
                     type="text"
                     required
-                    value={verifyData.code}
+                    value={verifyData.link}
                     onChange={handleVerifyChange}
-                    maxLength={6}
-                    className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm text-center text-2xl tracking-widest"
-                    placeholder="000000"
+                    className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                    placeholder="E-postanıza gelen doğrulama linkini yapıştırın"
                   />
                 </div>
+                <p className="mt-2 text-xs text-gray-500">
+                  E-postanıza gönderilen doğrulama linkini buraya yapıştırın
+                </p>
               </div>
 
               {/* Doğrula Butonu */}
@@ -331,6 +400,18 @@ function Login() {
                   className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? "Doğrulanıyor..." : "Doğrula"}
+                </button>
+              </div>
+
+              {/* Tekrar Yolla Butonu */}
+              <div>
+                <button
+                  type="button"
+                  onClick={handleResendLink}
+                  disabled={loading}
+                  className="w-full flex justify-center py-2 px-4 border border-blue-300 text-sm font-medium rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? "Gönderiliyor..." : "Mail Gelmedi? Tekrar Yolla"}
                 </button>
               </div>
 
