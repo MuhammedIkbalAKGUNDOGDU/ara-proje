@@ -1,8 +1,122 @@
-import React from "react";
+import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { API_KEY, API_BASE_URL, ONBOARDING_API_BASE_URL } from "../config/api";
 
 function Profile() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [isResetting, setIsResetting] = useState(false);
+
+  const handleResetAlgorithm = async () => {
+    if (!window.confirm("Keşfet algoritmasını sıfırlamak istediğinizden emin misiniz? Bu işlem ilgi alanlarınızı ve öğrenme verilerinizi sıfırlayacaktır.")) {
+      return;
+    }
+
+    setIsResetting(true);
+    const token = localStorage.getItem("token");
+
+    try {
+      // Reset scores API çağrısı
+      console.log("Reset Scores API Request:", {
+        url: `${ONBOARDING_API_BASE_URL}/reset-scores`,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-KEY": API_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const resetScoresResponse = await fetch(
+        `${ONBOARDING_API_BASE_URL}/reset-scores`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-KEY": API_KEY,
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const resetScoresResponseText = await resetScoresResponse.text();
+      let resetScoresData;
+      try {
+        resetScoresData = JSON.parse(resetScoresResponseText);
+      } catch {
+        resetScoresData = { message: resetScoresResponseText };
+      }
+
+      console.log("Reset Scores API Response:", {
+        status: resetScoresResponse.status,
+        statusText: resetScoresResponse.statusText,
+        headers: Object.fromEntries(resetScoresResponse.headers.entries()),
+        rawResponse: resetScoresResponseText,
+        parsedData: resetScoresData,
+      });
+
+      // İlgi alanlarını sıfırla (onboarding API'sine boş array gönder)
+      const resetResponse = await fetch(
+        `${ONBOARDING_API_BASE_URL}/onboarding`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-KEY": API_KEY,
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            categories: [],
+          }),
+        }
+      );
+
+      const resetResponseText = await resetResponse.text();
+      let resetData;
+      try {
+        resetData = JSON.parse(resetResponseText);
+      } catch {
+        resetData = { message: resetResponseText };
+      }
+
+      if (resetScoresResponse.ok && resetResponse.ok) {
+        // firstLogin'ı true yap ki kullanıcı tekrar ilgi alanı seçimine yönlendirilsin
+        try {
+          await fetch(`${API_BASE_URL}/users/updateFirstLogin`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-KEY": API_KEY,
+              Authorization: `Bearer ${token}`,
+            },
+          });
+        } catch (error) {
+          console.error("Update firstLogin error:", error);
+        }
+
+        // Account data'yı güncelle
+        const accountData = JSON.parse(
+          localStorage.getItem("accountData") || "{}"
+        );
+        accountData.firstLogin = true;
+        localStorage.setItem("accountData", JSON.stringify(accountData));
+
+        alert("Keşfet algoritması başarıyla sıfırlandı! İlgi alanlarınızı tekrar seçmeniz gerekecek.");
+        
+        // İlgi alanları seçim sayfasına yönlendir
+        navigate("/interests");
+      } else {
+        const errorMessage = resetScoresData.message || resetData.message || "Algoritma sıfırlanırken bir hata oluştu. Lütfen tekrar deneyin.";
+        alert(errorMessage);
+      }
+    } catch (error) {
+      console.error("Reset algorithm error:", error);
+      alert("Bir hata oluştu. Lütfen tekrar deneyin.");
+    } finally {
+      setIsResetting(false);
+    }
+  };
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-rose-50 to-pink-50">
@@ -114,57 +228,29 @@ function Profile() {
             </div>
           </div>
 
-          {/* Profil Ayarları */}
+          {/* Keşfet Algoritmasını Sıfırla */}
           <div className="mt-8">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Profil Ayarları
+              Keşfet Algoritması
             </h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-800">Bildirimler</p>
-                  <p className="text-sm text-gray-500">
-                    Yeni haberler için bildirim al
+            <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="font-medium text-gray-800 mb-1">
+                    Algoritmayı Sıfırla
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    İlgi alanlarınızı ve öğrenme verilerinizi sıfırlayarak 
+                    keşfet algoritmasını yeniden başlatın. Bu işlem geri alınamaz.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    defaultChecked
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-800">Karanlık Tema</p>
-                  <p className="text-sm text-gray-500">
-                    Karanlık modu etkinleştir
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-800">Otomatik Kaydetme</p>
-                  <p className="text-sm text-gray-500">
-                    Beğenilen haberleri otomatik kaydet
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    defaultChecked
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                </label>
+                <button
+                  onClick={handleResetAlgorithm}
+                  disabled={isResetting}
+                  className="ml-4 px-4 py-2 bg-gradient-to-r from-red-600 to-rose-600 text-white text-sm font-semibold rounded-lg hover:from-red-700 hover:to-rose-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95"
+                >
+                  {isResetting ? "Sıfırlanıyor..." : "Sıfırla"}
+                </button>
               </div>
             </div>
           </div>
