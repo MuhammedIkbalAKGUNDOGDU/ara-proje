@@ -22,6 +22,10 @@ import {
   Newspaper,
 } from "lucide-react";
 
+// Default haber görseli
+const DEFAULT_NEWS_IMAGE =
+  "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1200&h=800&fit=crop&q=80";
+
 // Kategorilere göre icon mapping
 const getCategoryIcon = (category) => {
   const categoryLower = (category || "").toLowerCase();
@@ -225,7 +229,9 @@ function NewsCard({ news, isActive, onNext, onPrevious }) {
 
   const handleImageLoad = () => {
     // Görsel başarıyla yüklendiğinde hata durumunu sıfırla
-    setImageError(false);
+    if (imageError) {
+      setImageError(false);
+    }
   };
 
   // news.image değiştiğinde görseli güncelle
@@ -249,90 +255,87 @@ function NewsCard({ news, isActive, onNext, onPrevious }) {
 
   return (
     <div
-      className={`relative w-full h-screen flex-shrink-0 transition-all duration-500 ease-in-out cursor-pointer ${
-        isActive ? "opacity-100 scale-100" : "opacity-0 scale-95"
+      className={`w-full max-w-md mx-auto transition-all duration-300 ${
+        isActive ? "opacity-100" : "opacity-60"
       }`}
       onClick={handleCardClick}
     >
-      {/* Arka plan - Kategori iconu ve gradient */}
-      <div
-        className={`absolute inset-0 z-0 bg-gradient-to-br ${getCategoryGradient(
-          news.category
-        )}`}
-      >
-        <div className="absolute inset-0 flex items-center justify-center opacity-20">
-          {getCategoryIcon(news.category)}
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-      </div>
-
-      {/* İçerik */}
-      <div className="relative z-10 flex flex-col h-full">
-        {/* Üst bilgiler */}
-        <div className="flex justify-between items-start p-6 pt-16">
+      {/* Instagram tarzı kart */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
+        {/* Üst başlık bölümü */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">
-                {news.author.charAt(0)}
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+              <span className="text-white font-bold text-xs">
+                {news.author.charAt(0).toUpperCase()}
               </span>
             </div>
             <div>
-              <p className="text-white font-semibold text-sm">{news.author}</p>
-              <p className="text-white/70 text-xs">{news.publishDate}</p>
+              <p className="text-gray-900 font-semibold text-sm">{news.author}</p>
+              <p className="text-gray-500 text-xs">{news.publishDate}</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
+            <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">
               {news.category}
             </span>
-            <span className="text-white/70 text-xs">{news.readTime}</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNotInterested(e);
+              }}
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              title="İlgilenmiyorum"
+            >
+              <X className="w-5 h-5 text-gray-600" />
+            </button>
           </div>
         </div>
 
-        {/* Ana içerik */}
-        <div className="flex-1 flex items-end p-4 sm:p-6 pb-16 sm:pb-20">
-          <div className="w-full">
-            <h2 className="text-white text-xl sm:text-2xl font-bold mb-3 sm:mb-4 leading-tight">
-              {news.title}
-            </h2>
-            {news.summary && (
-              <p className="text-white/90 text-sm sm:text-base leading-relaxed mb-4">
-                {news.summary}
-              </p>
-            )}
+        {/* Görsel */}
+        <div className="relative w-full aspect-square bg-gray-100">
+          <img
+            src={imageSrc}
+            alt={news.title}
+            className="w-full h-full object-cover"
+            onError={handleImageError}
+            onLoad={handleImageLoad}
+          />
+          {/* Kategori badge - görsel üzerinde */}
+          <div className="absolute top-2 right-2">
+            <div className="bg-black/50 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
+              {news.category}
+            </div>
           </div>
         </div>
 
-        {/* Alt etkileşim butonları */}
-        <div className="absolute right-2 sm:right-4 bottom-16 sm:bottom-20 flex flex-col space-y-3 sm:space-y-4">
-          {/* İlgilenmiyorum Butonu */}
-          <button
-            onClick={handleNotInterested}
-            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-              isNotInterested
-                ? "bg-gray-500 text-white"
-                : "bg-white/20 backdrop-blur-sm text-white hover:bg-white/30"
-            }`}
-            title="İlgilenmiyorum"
-          >
-            <X className="w-6 h-6" />
-          </button>
-
-          {/* Paylaş Butonu */}
-          <button
-            onClick={handleShare}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-all duration-300 flex items-center justify-center"
-            title="Paylaş"
-          >
-            <Share2 className="w-6 h-6" />
-          </button>
+        {/* Etkileşim butonları */}
+        <div className="px-4 py-2 flex items-center justify-between border-b border-gray-200">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShare(e);
+              }}
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              title="Paylaş"
+            >
+              <Share2 className="w-5 h-5 text-gray-700" />
+            </button>
+          </div>
+          <span className="text-gray-500 text-xs">{news.readTime}</span>
         </div>
 
-        {/* Navigasyon ipuçları */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-4 flex space-x-2">
-          <div className="w-2 h-2 bg-white/50 rounded-full"></div>
-          <div className="w-2 h-2 bg-white/50 rounded-full"></div>
-          <div className="w-2 h-2 bg-white/50 rounded-full"></div>
+        {/* İçerik */}
+        <div className="px-4 py-3">
+          <h2 className="text-gray-900 font-semibold text-base mb-2 leading-tight">
+            {news.title}
+          </h2>
+          {news.summary && (
+            <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
+              {news.summary}
+            </p>
+          )}
         </div>
       </div>
     </div>

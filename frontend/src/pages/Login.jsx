@@ -311,13 +311,13 @@ function Login() {
   // Kod Doğrulama Ekranı
   if (step === 2) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           {/* Logo ve Başlık */}
           <div className="text-center">
-            <div className="mx-auto h-16 w-16 bg-blue-500 rounded-full flex items-center justify-center">
+            <div className="mx-auto h-20 w-20 bg-gradient-to-br from-red-600 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-red-200">
               <svg
-                className="h-8 w-8 text-white"
+                className="h-10 w-10 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -340,9 +340,9 @@ function Login() {
 
           {/* Form */}
           <form className="mt-8 space-y-6" onSubmit={handleVerifyLogin}>
-            <div className="bg-white rounded-xl shadow-lg p-8 space-y-6">
+            <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6 border border-red-100">
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg text-sm">
                   {error}
                 </div>
               )}
@@ -351,7 +351,7 @@ function Login() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
                 >
                   E-posta Adresi
                 </label>
@@ -362,7 +362,7 @@ function Login() {
                     type="email"
                     readOnly
                     value={verifyData.email}
-                    className="appearance-none relative block w-full px-3 py-3 border border-gray-300 bg-gray-50 text-gray-500 rounded-lg sm:text-sm cursor-not-allowed"
+                    className="appearance-none relative block w-full px-4 py-3 border-2 border-gray-200 bg-gray-50 text-gray-500 rounded-xl sm:text-sm cursor-not-allowed focus:outline-none"
                   />
                 </div>
               </div>
@@ -371,7 +371,7 @@ function Login() {
               <div>
                 <label
                   htmlFor="link"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
                 >
                   Doğrulama Linki
                 </label>
@@ -383,7 +383,7 @@ function Login() {
                     required
                     value={verifyData.link}
                     onChange={handleVerifyChange}
-                    className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                    className="appearance-none relative block w-full px-4 py-3 border-2 border-gray-200 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm transition-all"
                     placeholder="E-postanıza gelen doğrulama linkini yapıştırın"
                   />
                 </div>
@@ -397,7 +397,7 @@ function Login() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="group relative w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all shadow-lg shadow-red-200 hover:shadow-xl hover:shadow-red-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {loading ? "Doğrulanıyor..." : "Doğrula"}
                 </button>
@@ -409,7 +409,7 @@ function Login() {
                   type="button"
                   onClick={handleResendLink}
                   disabled={loading}
-                  className="w-full flex justify-center py-2 px-4 border border-blue-300 text-sm font-medium rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex justify-center py-2.5 px-4 border-2 border-red-300 text-sm font-semibold rounded-xl text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? "Gönderiliyor..." : "Mail Gelmedi? Tekrar Yolla"}
                 </button>
@@ -420,7 +420,7 @@ function Login() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="text-sm text-blue-600 hover:text-blue-500"
+                  className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
                 >
                   ← Geri Dön
                 </button>
@@ -434,13 +434,13 @@ function Login() {
 
   // Login Formu
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Logo ve Başlık */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-blue-500 rounded-full flex items-center justify-center">
+          <div className="mx-auto h-20 w-20 bg-gradient-to-br from-red-600 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-red-200 transform hover:scale-105 transition-transform">
             <svg
-              className="h-8 w-8 text-white"
+              className="h-10 w-10 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -453,14 +453,14 @@ function Login() {
               />
             </svg>
           </div>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+          <h2 className="mt-6 text-4xl font-bold text-gray-900">
             Hesabınıza Giriş Yapın
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Hesabınız yok mu?{" "}
             <Link
               to="/register"
-              className="font-medium text-blue-600 hover:text-blue-500"
+              className="font-semibold text-red-600 hover:text-red-700 transition-colors"
             >
               Kayıt olun
             </Link>
@@ -469,9 +469,9 @@ function Login() {
 
         {/* Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="bg-white rounded-xl shadow-lg p-8 space-y-6">
+          <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6 border border-red-100">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg text-sm">
                 {error}
               </div>
             )}
@@ -480,7 +480,7 @@ function Login() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-semibold text-gray-700 mb-2"
               >
                 E-posta Adresi
               </label>
@@ -493,7 +493,7 @@ function Login() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="appearance-none relative block w-full px-4 py-3 border-2 border-gray-200 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm transition-all"
                   placeholder="ornek@email.com"
                 />
               </div>
@@ -503,7 +503,7 @@ function Login() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-semibold text-gray-700 mb-2"
               >
                 Şifre
               </label>
@@ -516,17 +516,22 @@ function Login() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="appearance-none relative block w-full px-3 py-3 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="appearance-none relative block w-full px-4 py-3 pr-12 border-2 border-gray-200 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm transition-all"
                   placeholder="Şifrenizi girin"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-600 cursor-pointer transition-colors"
-                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center justify-center z-10 hover:text-red-600 cursor-pointer transition-colors focus:outline-none"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowPassword(!showPassword);
+                  }}
+                  aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"}
                 >
                   {showPassword ? (
                     <svg
-                      className="h-5 w-5 text-gray-400"
+                      className="h-5 w-5 text-gray-500 hover:text-red-600"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -540,7 +545,7 @@ function Login() {
                     </svg>
                   ) : (
                     <svg
-                      className="h-5 w-5 text-gray-400"
+                      className="h-5 w-5 text-gray-500 hover:text-red-600"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -568,7 +573,7 @@ function Login() {
               <div className="text-sm">
                 <a
                   href="#"
-                  className="font-medium text-blue-600 hover:text-blue-500"
+                  className="font-semibold text-red-600 hover:text-red-700 transition-colors"
                 >
                   Şifremi unuttum
                 </a>
@@ -580,11 +585,11 @@ function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group relative w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all shadow-lg shadow-red-200 hover:shadow-xl hover:shadow-red-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                   <svg
-                    className="h-5 w-5 text-blue-500 group-hover:text-blue-400"
+                    className="h-5 w-5 text-red-300 group-hover:text-red-200"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -603,17 +608,17 @@ function Login() {
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
+                  <div className="w-full border-t border-gray-200" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Veya</span>
+                  <span className="px-3 bg-white text-gray-500 font-medium">Veya</span>
                 </div>
               </div>
 
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  className="w-full inline-flex justify-center py-2.5 px-4 border-2 border-gray-200 rounded-xl shadow-sm bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24">
                     <path
@@ -638,7 +643,7 @@ function Login() {
 
                 <button
                   type="button"
-                  className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  className="w-full inline-flex justify-center py-2.5 px-4 border-2 border-gray-200 rounded-xl shadow-sm bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all"
                 >
                   <svg
                     className="h-5 w-5"

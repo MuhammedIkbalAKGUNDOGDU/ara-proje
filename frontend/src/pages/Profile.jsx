@@ -5,12 +5,12 @@ function Profile() {
   const { user } = useAuth();
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-rose-50 to-pink-50">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-red-100">
           {/* Profil Bilgileri */}
           <div className="flex items-center space-x-6 mb-8">
-            <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-red-600 to-rose-600 rounded-full flex items-center justify-center shadow-md">
               <span className="text-white text-2xl font-bold">MU</span>
             </div>
             <div>
@@ -27,15 +27,15 @@ function Profile() {
           {/* İstatistikler */}
           <div className="grid grid-cols-3 gap-6 mb-8">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">156</div>
+              <div className="text-2xl font-bold text-red-600">156</div>
               <div className="text-gray-500 text-sm">Okunan Haber</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">23</div>
+              <div className="text-2xl font-bold text-rose-600">23</div>
               <div className="text-gray-500 text-sm">Beğenilen</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">8</div>
+              <div className="text-2xl font-bold text-pink-600">8</div>
               <div className="text-gray-500 text-sm">Kaydedilen</div>
             </div>
           </div>
@@ -47,9 +47,9 @@ function Profile() {
             </h3>
             <div className="space-y-4">
               <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
                   <svg
-                    className="w-4 h-4 text-blue-600"
+                    className="w-4 h-4 text-red-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -133,7 +133,7 @@ function Profile() {
                     className="sr-only peer"
                     defaultChecked
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
                 </label>
               </div>
 
@@ -146,7 +146,7 @@ function Profile() {
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
                 </label>
               </div>
 
@@ -163,7 +163,7 @@ function Profile() {
                     className="sr-only peer"
                     defaultChecked
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
                 </label>
               </div>
             </div>

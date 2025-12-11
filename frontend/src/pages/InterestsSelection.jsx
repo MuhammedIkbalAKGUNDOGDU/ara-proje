@@ -5,7 +5,7 @@ import { API_KEY, API_BASE_URL, ONBOARDING_API_BASE_URL } from "../config/api";
 
 function InterestsSelection() {
   const navigate = useNavigate();
-  const { user, updateUser } = useAuth();
+  const { updateUser } = useAuth();
   const [selectedInterests, setSelectedInterests] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -99,7 +99,7 @@ function InterestsSelection() {
       let responseData;
       try {
         responseData = JSON.parse(responseText);
-      } catch (e) {
+      } catch {
         responseData = { message: responseText };
       }
 
@@ -131,7 +131,7 @@ function InterestsSelection() {
           let updateResponseData;
           try {
             updateResponseData = JSON.parse(updateResponseText);
-          } catch (e) {
+          } catch {
             updateResponseData = { message: updateResponseText };
           }
 
@@ -191,11 +191,11 @@ function InterestsSelection() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl w-full space-y-8">
         {/* Başlık */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-blue-500 rounded-full flex items-center justify-center">
+          <div className="mx-auto h-20 w-20 bg-gradient-to-br from-red-600 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-red-200">
             <svg
               className="h-8 w-8 text-white"
               fill="none"
@@ -210,7 +210,7 @@ function InterestsSelection() {
               />
             </svg>
           </div>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+          <h2 className="mt-6 text-4xl font-bold text-gray-900">
             İlgi Alanlarınızı Seçin
           </h2>
           <p className="mt-2 text-sm text-gray-600">
@@ -219,7 +219,7 @@ function InterestsSelection() {
         </div>
 
         {/* İlgi Alanları Grid */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-red-100">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {interests.map((interest) => {
               const isSelected = selectedInterests.includes(interest.id);
@@ -231,8 +231,8 @@ function InterestsSelection() {
                     relative p-6 rounded-xl border-2 transition-all duration-200
                     ${
                       isSelected
-                        ? "border-blue-500 bg-blue-50 shadow-md scale-105"
-                        : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50"
+                        ? "border-red-500 bg-red-50 shadow-md scale-105"
+                        : "border-gray-200 bg-white hover:border-red-300 hover:bg-red-50"
                     }
                   `}
                 >
@@ -240,7 +240,7 @@ function InterestsSelection() {
                     <span className="text-4xl">{interest.icon}</span>
                     <span
                       className={`text-sm font-medium ${
-                        isSelected ? "text-blue-700" : "text-gray-700"
+                        isSelected ? "text-red-700" : "text-gray-700"
                       }`}
                     >
                       {interest.name}
@@ -248,7 +248,7 @@ function InterestsSelection() {
                   </div>
                   {isSelected && (
                     <div className="absolute top-2 right-2">
-                      <div className="h-6 w-6 bg-blue-500 rounded-full flex items-center justify-center">
+                      <div className="h-6 w-6 bg-red-600 rounded-full flex items-center justify-center shadow-sm">
                         <svg
                           className="h-4 w-4 text-white"
                           fill="none"
@@ -273,7 +273,7 @@ function InterestsSelection() {
           {/* Seçim Sayısı */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              <span className="font-semibold text-blue-600">
+              <span className="font-semibold text-red-600">
                 {selectedInterests.length}
               </span>{" "}
               ilgi alanı seçildi
@@ -286,11 +286,11 @@ function InterestsSelection() {
               onClick={handleSubmit}
               disabled={selectedInterests.length === 0 || loading}
               className={`
-                w-full py-3 px-4 rounded-lg text-sm font-medium transition-colors
+                w-full py-3.5 px-4 rounded-xl text-sm font-semibold transition-all
                 ${
                   selectedInterests.length === 0 || loading
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    : "bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-700 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-lg shadow-red-200 hover:shadow-xl hover:shadow-red-300 transform hover:scale-[1.02] active:scale-[0.98]"
                 }
               `}
             >

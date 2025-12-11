@@ -55,7 +55,7 @@ function NewsDetail() {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              "x-api-key": API_KEY,
+              "X-API-KEY": API_KEY,
               Authorization: `Bearer ${token}`,
             },
           }

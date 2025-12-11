@@ -71,9 +71,9 @@ function NewsFeed() {
         scroll-snap-stop: always;
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: flex-start;
         min-height: 100vh;
-        padding: 20px;
+        padding: 20px 0;
       }
       
       .news-container::-webkit-scrollbar {
@@ -166,12 +166,13 @@ function NewsFeed() {
   // Scroll pozisyonunu güncelle
   useEffect(() => {
     if (containerRef.current && newsData.length > 0) {
-      const itemHeight = containerRef.current.scrollHeight / newsData.length;
-      const scrollPosition = currentIndex * itemHeight;
-      containerRef.current.scrollTo({
-        top: scrollPosition,
-        behavior: "smooth",
-      });
+      const items = containerRef.current.querySelectorAll('.news-item');
+      if (items[currentIndex]) {
+        items[currentIndex].scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
     }
   }, [currentIndex, newsData.length]);
 
@@ -183,9 +184,23 @@ function NewsFeed() {
     const handleScroll = () => {
       if (isScrolling) return; // Programatik scroll sırasında çalışmasın
 
+      const items = container.querySelectorAll('.news-item');
       const scrollTop = container.scrollTop;
-      const itemHeight = container.scrollHeight / newsData.length;
-      const newIndex = Math.round(scrollTop / itemHeight);
+      const containerHeight = container.clientHeight;
+      
+      // Hangi item görünür alanda
+      let newIndex = 0;
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const itemTop = item.offsetTop;
+        const itemHeight = item.offsetHeight;
+        
+        if (scrollTop + containerHeight / 2 >= itemTop && 
+            scrollTop + containerHeight / 2 < itemTop + itemHeight) {
+          newIndex = i;
+          break;
+        }
+      }
 
       if (
         newIndex !== currentIndex &&
@@ -229,7 +244,7 @@ function NewsFeed() {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              "x-api-key": API_KEY,
+              "X-API-KEY": API_KEY,
               Authorization: `Bearer ${token}`,
             },
           }
@@ -239,7 +254,7 @@ function NewsFeed() {
         let responseData;
         try {
           responseData = JSON.parse(responseText);
-        } catch (e) {
+        } catch {
           responseData = { message: responseText };
         }
 
@@ -300,88 +315,39 @@ function NewsFeed() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-xl">Haberler yükleniyor...</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-600 text-xl">Haberler yükleniyor...</div>
       </div>
     );
   }
 
   if (newsData.length === 0) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-xl">Henüz haber bulunmuyor.</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-600 text-xl">Henüz haber bulunmuyor.</div>
       </div>
     );
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="news-container relative"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
-      {newsData.map((news, index) => (
-        <div key={news.id} className="news-item">
-          <NewsCard
-            news={news}
-            isActive={index === currentIndex}
-            onNext={goToNext}
-            onPrevious={goToPrevious}
-          />
-        </div>
-      ))}
-
-      {/* Progress indicator */}
-      <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-20">
-        <div className="flex flex-col space-y-2">
-          {newsData.map((_, index) => (
-            <div
-              key={index}
-              className={`w-1 h-8 rounded-full transition-all duration-300 ${
-                index === currentIndex ? "bg-white" : "bg-white/30"
-              }`}
+    <div className="min-h-screen bg-gray-50">
+      <div
+        ref={containerRef}
+        className="news-container relative mx-auto"
+        style={{ maxWidth: "33.33%" }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        {newsData.map((news, index) => (
+          <div key={news.id} className="news-item">
+            <NewsCard
+              news={news}
+              isActive={index === currentIndex}
+              onNext={goToNext}
+              onPrevious={goToPrevious}
             />
-          ))}
-        </div>
-      </div>
-
-      {/* Navigasyon ipuçları */}
-      <div className="fixed left-1/2 transform -translate-x-1/2 bottom-8 z-20">
-        <div className="flex items-center space-x-4 text-white/70">
-          <div className="flex items-center space-x-2">
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 16l-4-4m0 0l4-4m-4 4h18"
-              />
-            </svg>
-            <span className="text-sm">Yukarı</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm">Aşağı</span>
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 8l4 4m0 0l-4 4m4-4H3"
-              />
-            </svg>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );

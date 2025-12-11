@@ -26,7 +26,7 @@ function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-rose-50 to-pink-50">
       {/* Hero Section */}
       <div className="max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-16">
@@ -40,33 +40,33 @@ function Home() {
         </div>
 
         {/* Kullanıcı İstatistikleri */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8 border border-red-100">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">
             Kişisel İstatistikleriniz
           </h2>
 
           {/* Ana İstatistikler */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-3xl font-bold text-blue-600 mb-2">
+            <div className="text-center p-4 bg-red-50 rounded-lg border border-red-100">
+              <div className="text-3xl font-bold text-red-600 mb-2">
                 {userStats.totalTimeSpent}
               </div>
               <div className="text-gray-600">Toplam Süre</div>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-3xl font-bold text-green-600 mb-2">
+            <div className="text-center p-4 bg-rose-50 rounded-lg border border-rose-100">
+              <div className="text-3xl font-bold text-rose-600 mb-2">
                 {userStats.articlesRead}
               </div>
               <div className="text-gray-600">Okunan Haber</div>
             </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-3xl font-bold text-purple-600 mb-2">
+            <div className="text-center p-4 bg-pink-50 rounded-lg border border-pink-100">
+              <div className="text-3xl font-bold text-pink-600 mb-2">
                 {userStats.readingStreak}
               </div>
               <div className="text-gray-600">Günlük Seri</div>
             </div>
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <div className="text-3xl font-bold text-orange-600 mb-2">
+            <div className="text-center p-4 bg-red-100 rounded-lg border border-red-200">
+              <div className="text-3xl font-bold text-red-700 mb-2">
                 {userStats.averageReadingTime}
               </div>
               <div className="text-gray-600">Ortalama Süre</div>
@@ -82,7 +82,7 @@ function Home() {
               {userStats.weeklyActivity.map((day, index) => (
                 <div key={index} className="flex flex-col items-center">
                   <div
-                    className="bg-blue-500 rounded-t-lg w-8 mb-2 transition-all duration-500 hover:bg-blue-600"
+                    className="bg-gradient-to-t from-red-600 to-rose-500 rounded-t-lg w-8 mb-2 transition-all duration-500 hover:from-red-700 hover:to-rose-600 shadow-sm"
                     style={{ height: `${(day.articles / 25) * 100}px` }}
                   ></div>
                   <span className="text-xs text-gray-600">{day.day}</span>
@@ -129,8 +129,8 @@ function Home() {
 
         {/* Özellik Kartları */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow">
-            <div className="w-16 h-16 bg-blue-500 rounded-lg flex items-center justify-center mb-6">
+          <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow border border-red-100">
+            <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-rose-600 rounded-lg flex items-center justify-center mb-6 shadow-md">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"
@@ -153,14 +153,14 @@ function Home() {
             </p>
             <a
               href="/news"
-              className="text-blue-500 font-medium hover:text-blue-600"
+              className="text-red-600 font-semibold hover:text-red-700 transition-colors"
             >
               Haberleri Görüntüle →
             </a>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow">
-            <div className="w-16 h-16 bg-green-500 rounded-lg flex items-center justify-center mb-6">
+          <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow border border-red-100">
+            <div className="w-16 h-16 bg-gradient-to-br from-rose-600 to-pink-600 rounded-lg flex items-center justify-center mb-6 shadow-md">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"
@@ -181,14 +181,14 @@ function Home() {
             </p>
             <a
               href="/profile"
-              className="text-green-500 font-medium hover:text-green-600"
+              className="text-red-600 font-semibold hover:text-red-700 transition-colors"
             >
               Profili Görüntüle →
             </a>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow">
-            <div className="w-16 h-16 bg-purple-500 rounded-lg flex items-center justify-center mb-6">
+          <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow border border-red-100">
+            <div className="w-16 h-16 bg-gradient-to-br from-pink-600 to-red-500 rounded-lg flex items-center justify-center mb-6 shadow-md">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"
@@ -211,7 +211,7 @@ function Home() {
             </p>
             <a
               href="/about"
-              className="text-purple-500 font-medium hover:text-purple-600"
+              className="text-red-600 font-semibold hover:text-red-700 transition-colors"
             >
               Daha Fazla Bilgi →
             </a>
@@ -219,31 +219,31 @@ function Home() {
         </div>
 
         {/* Platform İstatistikleri */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        <div className="bg-white rounded-xl shadow-lg p-8 border border-red-100">
           <h2 className="text-2xl font-bold text-gray-800 mb-8 text-center">
             Platform İstatistikleri
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">
+              <div className="text-3xl font-bold text-red-600 mb-2">
                 1,250+
               </div>
               <div className="text-gray-600">Toplam Haber</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600 mb-2">
+              <div className="text-3xl font-bold text-rose-600 mb-2">
                 5,680+
               </div>
               <div className="text-gray-600">Aktif Kullanıcı</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-2">
+              <div className="text-3xl font-bold text-pink-600 mb-2">
                 12,450+
               </div>
               <div className="text-gray-600">Günlük Okuma</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600 mb-2">98%</div>
+              <div className="text-3xl font-bold text-red-700 mb-2">98%</div>
               <div className="text-gray-600">Memnuniyet Oranı</div>
             </div>
           </div>
