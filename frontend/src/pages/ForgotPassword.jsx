@@ -44,26 +44,18 @@ function ForgotPassword() {
       <div className="max-w-md w-full space-y-8">
         {/* Logo ve Başlık */}
         <div className="text-center">
-          <div className="mx-auto h-20 w-20 bg-gradient-to-br from-red-600 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-red-200 transform hover:scale-105 transition-transform">
-            <svg
-              className="h-10 w-10 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
-              />
-            </svg>
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/logo.png" 
+              alt="Lokum Haber" 
+              className="h-24 w-24 object-contain"
+            />
           </div>
           <h2 className="mt-6 text-4xl font-bold text-gray-900">
             Şifremi Unuttum
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            E-posta adresinize şifre sıfırlama linki göndereceğiz
+            Lokum Haber hesabınız için şifre sıfırlama linki göndereceğiz
           </p>
         </div>
 

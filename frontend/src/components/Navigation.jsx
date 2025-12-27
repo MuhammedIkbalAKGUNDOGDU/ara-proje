@@ -28,13 +28,20 @@ function Navigation() {
       <nav className="bg-white shadow-lg relative border-b border-red-100 z-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between h-16">
-            <div className="flex items-center">
+            <div className="flex items-center space-x-3">
               <Link 
                 to="/" 
-                className="text-xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent"
+                className="flex items-center space-x-3"
                 onClick={closeMenu}
               >
-                HaberApp
+                <img 
+                  src="/logo.png" 
+                  alt="Lokum Haber" 
+                  className="h-10 w-10 object-contain"
+                />
+                <span className="text-xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
+                  Lokum Haber
+                </span>
               </Link>
             </div>
 
@@ -145,10 +152,17 @@ function Navigation() {
           <div className="flex items-center justify-between p-4 border-b border-red-100">
             <Link 
               to="/" 
-              className="text-xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent"
+              className="flex items-center space-x-3"
               onClick={closeMenu}
             >
-              HaberApp
+              <img 
+                src="/logo.png" 
+                alt="Lokum Haber" 
+                className="h-10 w-10 object-contain"
+              />
+              <span className="text-xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
+                Lokum Haber
+              </span>
             </Link>
             <button
               onClick={closeMenu}

@@ -53,6 +53,20 @@ function Register() {
       return;
     }
 
+    // Şifre validasyonu: En az 8 karakter, en az 1 sayı, en az 1 özel karakter
+    if (formData.password.length < 8) {
+      setError("Şifre en az 8 karakter olmalıdır!");
+      return;
+    }
+    if (!/[0-9]/.test(formData.password)) {
+      setError("Şifre en az 1 rakam içermelidir!");
+      return;
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)) {
+      setError("Şifre en az 1 özel karakter içermelidir!");
+      return;
+    }
+
     // Şartları kabul etme kontrolü
     if (!formData.agreeTerms) {
       setError("Kullanım şartlarını kabul etmelisiniz!");
@@ -337,20 +351,12 @@ function Register() {
         <div className="max-w-md w-full space-y-8">
           {/* Logo ve Başlık */}
           <div className="text-center">
-            <div className="mx-auto h-20 w-20 bg-gradient-to-br from-red-600 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-red-200">
-              <svg
-                className="h-10 w-10 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+            <div className="flex justify-center mb-4">
+              <img 
+                src="/logo.png" 
+                alt="Lokum Haber" 
+                className="h-20 w-20 object-contain"
+              />
             </div>
             <h2 className="mt-6 text-3xl font-bold text-gray-900">
               E-posta Doğrulama
@@ -460,23 +466,15 @@ function Register() {
       <div className="max-w-md w-full space-y-8">
         {/* Logo ve Başlık */}
         <div className="text-center">
-          <div className="mx-auto h-20 w-20 bg-gradient-to-br from-red-600 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-red-200 transform hover:scale-105 transition-transform">
-            <svg
-              className="h-10 w-10 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-              />
-            </svg>
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/logo.png" 
+              alt="Lokum Haber" 
+              className="h-24 w-24 object-contain"
+            />
           </div>
           <h2 className="mt-6 text-4xl font-bold text-gray-900">
-            Hesap Oluşturun
+            Lokum Haber'e Katılın
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Zaten hesabınız var mı?{" "}
@@ -612,8 +610,13 @@ function Register() {
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-600 cursor-pointer transition-colors"
-                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center justify-center z-10 hover:text-red-600 cursor-pointer transition-colors focus:outline-none"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowPassword(!showPassword);
+                  }}
+                  aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"}
                 >
                   {showPassword ? (
                     <svg
@@ -676,8 +679,13 @@ function Register() {
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-600 cursor-pointer transition-colors"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center justify-center z-10 hover:text-red-600 cursor-pointer transition-colors focus:outline-none"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowConfirmPassword(!showConfirmPassword);
+                  }}
+                  aria-label={showConfirmPassword ? "Şifreyi gizle" : "Şifreyi göster"}
                 >
                   {showConfirmPassword ? (
                     <svg
@@ -727,37 +735,13 @@ function Register() {
                 <li
                   className={`flex items-center ${
                     formData.password.length >= 8
-                      ? "text-red-600"
-                      : "text-gray-500"
-                  }`}
-                >
-                  <svg
-                    className={`w-3 h-3 mr-2 ${
-                      formData.password.length >= 8
-                        ? "text-red-500"
-                        : "text-gray-400"
-                    }`}
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  En az 8 karakter
-                </li>
-                <li
-                  className={`flex items-center ${
-                    /[A-Z]/.test(formData.password)
                       ? "text-green-600"
                       : "text-gray-500"
                   }`}
                 >
                   <svg
                     className={`w-3 h-3 mr-2 ${
-                      /[A-Z]/.test(formData.password)
+                      formData.password.length >= 8
                         ? "text-green-500"
                         : "text-gray-400"
                     }`}
@@ -770,7 +754,7 @@ function Register() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  En az 1 büyük harf
+                  En az 8 karakter
                 </li>
                 <li
                   className={`flex items-center ${
@@ -795,6 +779,30 @@ function Register() {
                     />
                   </svg>
                   En az 1 rakam
+                </li>
+                <li
+                  className={`flex items-center ${
+                    /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)
+                      ? "text-green-600"
+                      : "text-gray-500"
+                  }`}
+                >
+                  <svg
+                    className={`w-3 h-3 mr-2 ${
+                      /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)
+                        ? "text-green-500"
+                        : "text-gray-400"
+                    }`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  En az 1 özel karakter (!@#$%^&*...)
                 </li>
               </ul>
             </div>

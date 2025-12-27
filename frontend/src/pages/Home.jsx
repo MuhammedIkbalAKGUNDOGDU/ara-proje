@@ -30,12 +30,19 @@ function Home() {
       {/* Hero Section */}
       <div className="max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-16">
+          <div className="flex justify-center mb-6">
+            <img 
+              src="/logo.png" 
+              alt="Lokum Haber" 
+              className="h-24 w-24 object-contain"
+            />
+          </div>
           <h1 className="text-5xl font-bold text-gray-800 mb-6">
-            Hoş Geldiniz
+            Lokum Haber'e Hoş Geldiniz
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             En güncel haberleri keşfedin, profil bilgilerinizi görüntüleyin ve
-            platformumuzun sunduğu tüm özelliklerden yararlanın.
+            Lokum Haber'in sunduğu tüm özelliklerden yararlanın.
           </p>
         </div>
 
