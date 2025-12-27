@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Heart, ThumbsDown, Bookmark, Share2 } from "lucide-react";
-import { API_KEY, ONBOARDING_API_BASE_URL } from "../config/api";
+import { API_KEY, FEED_API_BASE_URL } from "../config/api";
 
 // Default haber görseli
 const DEFAULT_NEWS_IMAGE =
@@ -51,7 +51,7 @@ function HistoryNewsDetail() {
 
       try {
         console.log("News Detail API Request:", {
-          url: `${ONBOARDING_API_BASE_URL}/news/detail/${id}`,
+          url: `${FEED_API_BASE_URL}/news/detail/${id}`,
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -61,7 +61,7 @@ function HistoryNewsDetail() {
         });
 
         const response = await fetch(
-          `${ONBOARDING_API_BASE_URL}/news/detail/${id}`,
+          `${FEED_API_BASE_URL}/news/detail/${id}`,
           {
             method: "GET",
             headers: {

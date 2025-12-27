@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_KEY, ONBOARDING_API_BASE_URL } from "../config/api";
+import { API_KEY, FEED_API_BASE_URL } from "../config/api";
 
 function ReadHistory() {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ function ReadHistory() {
 
       try {
         console.log("Read History API Request:", {
-          url: `${ONBOARDING_API_BASE_URL}/user/read-history`,
+          url: `${FEED_API_BASE_URL}/user/read-history`,
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -31,7 +31,7 @@ function ReadHistory() {
         });
 
         const response = await fetch(
-          `${ONBOARDING_API_BASE_URL}/user/read-history`,
+          `${FEED_API_BASE_URL}/user/read-history`,
           {
             method: "GET",
             headers: {
