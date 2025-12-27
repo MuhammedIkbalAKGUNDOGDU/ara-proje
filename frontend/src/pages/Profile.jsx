@@ -7,6 +7,7 @@ function Profile() {
   const [loading, setLoading] = useState(true);
   const [recommendations, setRecommendations] = useState(null);
   const [recommendationsLoading, setRecommendationsLoading] = useState(true);
+  const [chartType, setChartType] = useState("bar"); // "bar" veya "pie"
 
   useEffect(() => {
     // Account bilgilerini yükle
@@ -117,12 +118,23 @@ function Profile() {
           parsedData: data,
         });
 
+        // Kategorileri normalize et (toplam %100 olacak şekilde)
+        let normalizedCategories = [];
+        if (data.categories && Array.isArray(data.categories)) {
+          const totalScore = data.categories.reduce((sum, cat) => sum + (cat.score || 0), 0);
+          normalizedCategories = data.categories.map(cat => ({
+            ...cat,
+            percentage: totalScore > 0 ? ((cat.score || 0) / totalScore) * 100 : 0
+          }));
+        }
+
         setRecommendations({
           status: response.status,
           statusText: response.statusText,
           headers: Object.fromEntries(response.headers.entries()),
           rawResponse: responseText,
           parsedData: data,
+          normalizedCategories,
         });
       } catch (error) {
         console.error("Recommendations API error:", error);
@@ -255,7 +267,7 @@ function Profile() {
       </div>
     );
   }
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-rose-50 to-pink-50">
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -263,13 +275,13 @@ function Profile() {
           {/* Profil Başlığı */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <div className="w-24 h-24 bg-gradient-to-br from-red-600 to-rose-600 rounded-full flex items-center justify-center shadow-md">
+            <div className="w-24 h-24 bg-gradient-to-br from-red-600 to-rose-600 rounded-full flex items-center justify-center shadow-md">
                 <span className="text-white text-3xl font-bold">{getInitials()}</span>
               </div>
             </div>
             <h2 className="text-3xl font-bold text-gray-800">
               {fullName}
-            </h2>
+              </h2>
           </div>
 
           {/* Kullanıcı Bilgileri */}
@@ -282,8 +294,8 @@ function Profile() {
                 <p className="text-sm text-gray-600 mb-1">Ad</p>
                 <p className="text-lg font-semibold text-gray-800">
                   {name || "Belirtilmemiş"}
-                </p>
-              </div>
+              </p>
+            </div>
 
               {/* Soyisim */}
               <div className="p-4 bg-rose-50 rounded-xl border border-rose-100">
@@ -291,7 +303,7 @@ function Profile() {
                 <p className="text-lg font-semibold text-gray-800">
                   {surname || "Belirtilmemiş"}
                 </p>
-              </div>
+          </div>
 
               {/* E-posta */}
               <div className="p-4 bg-pink-50 rounded-xl border border-pink-100">
@@ -299,7 +311,7 @@ function Profile() {
                 <p className="text-lg font-semibold text-gray-800 break-all">
                   {email || "Belirtilmemiş"}
                 </p>
-              </div>
+            </div>
 
               {/* Telefon */}
               <div className="p-4 bg-red-100 rounded-xl border border-red-200">
@@ -307,7 +319,7 @@ function Profile() {
                 <p className="text-lg font-semibold text-gray-800">
                   {phoneNumber || "Belirtilmemiş"}
                 </p>
-              </div>
+            </div>
             </div>
           </div>
 
@@ -316,7 +328,7 @@ function Profile() {
             <div className="mt-8">
               <h3 className="text-xl font-bold text-gray-800 mb-4">
                 Recommendations API Response
-              </h3>
+            </h3>
               <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                 <div className="mb-4">
                   <p className="text-sm font-semibold text-gray-700 mb-2">
@@ -367,6 +379,204 @@ function Profile() {
             <div className="mt-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
               <p className="mt-2 text-sm text-gray-600">Recommendations yükleniyor...</p>
+            </div>
+          )}
+
+          {/* İlgi Alanlarım - Görselleştirme */}
+          {recommendations && recommendations.normalizedCategories && recommendations.normalizedCategories.length > 0 && (
+            <div className="mt-8">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-800">İlgi Alanlarım</h3>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setChartType("bar")}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      chartType === "bar"
+                        ? "bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-md"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    Sütun Grafik
+                  </button>
+                  <button
+                    onClick={() => setChartType("pie")}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      chartType === "pie"
+                        ? "bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-md"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    Dairesel Grafik
+                  </button>
+                </div>
+              </div>
+
+              {chartType === "bar" ? (
+                // Sütun Grafik
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                  <div className="space-y-4">
+                    {recommendations.normalizedCategories.map((category, index) => {
+                      const colors = [
+                        "bg-red-500", "bg-rose-500", "bg-pink-500", "bg-purple-500",
+                        "bg-indigo-500", "bg-blue-500", "bg-cyan-500", "bg-teal-500",
+                        "bg-green-500", "bg-lime-500", "bg-yellow-500", "bg-amber-500",
+                        "bg-orange-500", "bg-red-600", "bg-rose-600", "bg-pink-600"
+                      ];
+                      const color = colors[index % colors.length];
+                      
+                      // Kategori ismini Türkçe'ye çevir
+                      const categoryNames = {
+                        economy: "Ekonomi",
+                        science: "Bilim",
+                        travel: "Seyahat",
+                        movie: "Film",
+                        book: "Kitap",
+                        nature: "Doğa",
+                        technology: "Teknoloji",
+                        sports: "Spor",
+                        music: "Müzik",
+                        food: "Yemek",
+                        game: "Oyun",
+                        education: "Eğitim",
+                        art: "Sanat",
+                        fashion: "Moda",
+                        photography: "Fotoğraf",
+                        health: "Sağlık"
+                      };
+                      
+                      const categoryName = categoryNames[category.category] || category.category;
+                      
+                      return (
+                        <div key={index} className="flex items-center space-x-4">
+                          <div className="w-32 text-sm font-medium text-gray-700">
+                            {categoryName}
+                          </div>
+                          <div className="flex-1 bg-gray-200 rounded-full h-6 overflow-hidden">
+                            <div
+                              className={`h-full ${color} rounded-full transition-all duration-500 flex items-center justify-end pr-2`}
+                              style={{ width: `${category.percentage}%` }}
+                            >
+                              {category.percentage > 5 && (
+                                <span className="text-xs font-semibold text-white">
+                                  {category.percentage.toFixed(1)}%
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {category.percentage <= 5 && (
+                            <div className="w-16 text-sm font-medium text-gray-600 text-right">
+                              {category.percentage.toFixed(1)}%
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                // Dairesel Grafik (Pie Chart)
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                  <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                    {/* Pie Chart SVG */}
+                    <div className="flex-shrink-0">
+                      <svg width="300" height="300" viewBox="0 0 300 300" className="transform -rotate-90">
+                        {(() => {
+                          let currentAngle = 0;
+                          const colors = [
+                            "#ef4444", "#f43f5e", "#ec4899", "#a855f7",
+                            "#6366f1", "#3b82f6", "#06b6d4", "#14b8a6",
+                            "#10b981", "#84cc16", "#eab308", "#f59e0b",
+                            "#f97316", "#dc2626", "#e11d48", "#db2777"
+                          ];
+                          
+                          return recommendations.normalizedCategories.map((category, index) => {
+                            const percentage = category.percentage;
+                            const angle = (percentage / 100) * 360;
+                            const startAngle = currentAngle;
+                            const endAngle = currentAngle + angle;
+                            currentAngle = endAngle;
+                            
+                            const startAngleRad = (startAngle * Math.PI) / 180;
+                            const endAngleRad = (endAngle * Math.PI) / 180;
+                            
+                            const x1 = 150 + 120 * Math.cos(startAngleRad);
+                            const y1 = 150 + 120 * Math.sin(startAngleRad);
+                            const x2 = 150 + 120 * Math.cos(endAngleRad);
+                            const y2 = 150 + 120 * Math.sin(endAngleRad);
+                            
+                            const largeArcFlag = angle > 180 ? 1 : 0;
+                            
+                            const pathData = [
+                              `M 150 150`,
+                              `L ${x1} ${y1}`,
+                              `A 120 120 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                              `Z`
+                            ].join(" ");
+                            
+                            return (
+                              <path
+                                key={index}
+                                d={pathData}
+                                fill={colors[index % colors.length]}
+                                stroke="white"
+                                strokeWidth="2"
+                                className="transition-all hover:opacity-80"
+                              />
+                            );
+                          });
+                        })()}
+                      </svg>
+                    </div>
+                    
+                    {/* Legend */}
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {recommendations.normalizedCategories.map((category, index) => {
+                        const colors = [
+                          "#ef4444", "#f43f5e", "#ec4899", "#a855f7",
+                          "#6366f1", "#3b82f6", "#06b6d4", "#14b8a6",
+                          "#10b981", "#84cc16", "#eab308", "#f59e0b",
+                          "#f97316", "#dc2626", "#e11d48", "#db2777"
+                        ];
+                        const color = colors[index % colors.length];
+                        
+                        const categoryNames = {
+                          economy: "Ekonomi",
+                          science: "Bilim",
+                          travel: "Seyahat",
+                          movie: "Film",
+                          book: "Kitap",
+                          nature: "Doğa",
+                          technology: "Teknoloji",
+                          sports: "Spor",
+                          music: "Müzik",
+                          food: "Yemek",
+                          game: "Oyun",
+                          education: "Eğitim",
+                          art: "Sanat",
+                          fashion: "Moda",
+                          photography: "Fotoğraf",
+                          health: "Sağlık"
+                        };
+                        
+                        const categoryName = categoryNames[category.category] || category.category;
+                        
+                        return (
+                          <div key={index} className="flex items-center space-x-2">
+                            <div
+                              className="w-4 h-4 rounded-full"
+                              style={{ backgroundColor: color }}
+                            ></div>
+                            <span className="text-sm text-gray-700">{categoryName}</span>
+                            <span className="text-sm font-semibold text-gray-900">
+                              {category.percentage.toFixed(1)}%
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
