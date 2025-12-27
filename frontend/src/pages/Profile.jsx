@@ -323,58 +323,6 @@ function Profile() {
             </div>
           </div>
 
-          {/* Recommendations API Response */}
-          {recommendations && (
-            <div className="mt-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
-                Recommendations API Response
-            </h3>
-              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                <div className="mb-4">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">
-                    Endpoint: {ONBOARDING_API_BASE_URL}/recommendations/{localStorage.getItem("userId")}
-                  </p>
-                  <p className="text-sm text-gray-600 mb-1">
-                    Status: <span className="font-semibold">{recommendations.status} {recommendations.statusText}</span>
-                  </p>
-                </div>
-                {recommendations.error ? (
-                  <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-                    <p className="text-sm text-red-700">{recommendations.error}</p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="bg-white rounded-lg p-4 border border-gray-300 overflow-auto mb-4">
-                      <pre className="text-xs text-gray-800 whitespace-pre-wrap break-words">
-                        {JSON.stringify(recommendations.parsedData, null, 2)}
-                      </pre>
-                    </div>
-                    <details className="mt-4">
-                      <summary className="text-sm font-semibold text-gray-700 cursor-pointer hover:text-red-600">
-                        Raw Response (Ham Veri)
-                      </summary>
-                      <div className="mt-2 bg-white rounded-lg p-4 border border-gray-300 overflow-auto">
-                        <pre className="text-xs text-gray-800 whitespace-pre-wrap break-words">
-                          {recommendations.rawResponse}
-                        </pre>
-                      </div>
-                    </details>
-                    <details className="mt-4">
-                      <summary className="text-sm font-semibold text-gray-700 cursor-pointer hover:text-red-600">
-                        Response Headers
-                      </summary>
-                      <div className="mt-2 bg-white rounded-lg p-4 border border-gray-300 overflow-auto">
-                        <pre className="text-xs text-gray-800 whitespace-pre-wrap break-words">
-                          {JSON.stringify(recommendations.headers, null, 2)}
-                        </pre>
-                      </div>
-                    </details>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
           {recommendationsLoading && (
             <div className="mt-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
