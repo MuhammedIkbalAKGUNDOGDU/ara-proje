@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import { API_KEY, API_BASE_URL, ONBOARDING_API_BASE_URL } from "../config/api";
+import { API_KEY, API_BASE_URL, ONBOARDING_API_BASE_URL, FEED_API_BASE_URL } from "../config/api";
 
 function Profile() {
-  const { user } = useAuth();
   const [isResetting, setIsResetting] = useState(false);
   const [accountData, setAccountData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [recommendations, setRecommendations] = useState(null);
+  const [recommendationsLoading, setRecommendationsLoading] = useState(true);
 
   useEffect(() => {
     // Account bilgilerini yükle
@@ -44,13 +44,18 @@ function Profile() {
         let data;
         try {
           data = JSON.parse(responseText);
-        } catch (e) {
+        } catch {
           data = { message: responseText };
         }
 
         if (response.ok && data.statusCode === 200 && data.data) {
           setAccountData(data.data);
           localStorage.setItem("accountData", JSON.stringify(data.data));
+          
+          // ID'yi localStorage'a kaydet
+          if (data.data.id) {
+            localStorage.setItem("userId", data.data.id.toString());
+          }
         }
       } catch (error) {
         console.error("Error loading account data:", error);
@@ -60,6 +65,76 @@ function Profile() {
     };
 
     loadAccountData();
+  }, []);
+
+  // Recommendations API çağrısı
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      const userId = localStorage.getItem("userId");
+      const token = localStorage.getItem("token");
+
+      if (!userId || !token) {
+        setRecommendationsLoading(false);
+        return;
+      }
+
+      try {
+        console.log("Recommendations API Request:", {
+          url: `${ONBOARDING_API_BASE_URL}/recommendations/${userId}`,
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-KEY": API_KEY,
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const response = await fetch(
+          `${ONBOARDING_API_BASE_URL}/recommendations/${userId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-KEY": API_KEY,
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const responseText = await response.text();
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          data = { message: responseText };
+        }
+
+        console.log("Recommendations API Response:", {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+          rawResponse: responseText,
+          parsedData: data,
+        });
+
+        setRecommendations({
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+          rawResponse: responseText,
+          parsedData: data,
+        });
+      } catch (error) {
+        console.error("Recommendations API error:", error);
+        setRecommendations({
+          error: error.message || "Bir hata oluştu",
+        });
+      } finally {
+        setRecommendationsLoading(false);
+      }
+    };
+
+    fetchRecommendations();
   }, []);
 
   const handleResetAlgorithm = async () => {
@@ -148,25 +223,24 @@ function Profile() {
     }
   };
   
-  // Kullanıcı bilgilerini birleştir
-  const userInfo = accountData || user || {};
-  const fullName = userInfo.name || `${userInfo.firstName || ""} ${userInfo.lastName || ""}`.trim() || "Kullanıcı";
-  const firstName = userInfo.firstName || userInfo.name?.split(" ")[0] || "";
-  const lastName = userInfo.lastName || userInfo.name?.split(" ").slice(1).join(" ") || "";
+  // Kullanıcı bilgilerini API'den gelen data'dan al
+  const userInfo = accountData || {};
+  const name = userInfo.name || "";
+  const surname = userInfo.surname || "";
   const email = userInfo.email || "";
-  const phoneNumber = userInfo.phoneNumber || userInfo.phone || "";
+  const phoneNumber = userInfo.phoneNumber || "";
+  const fullName = name && surname ? `${name} ${surname}` : name || surname || "Kullanıcı";
 
   // İsim baş harflerini al (avatar için)
   const getInitials = () => {
-    if (firstName && lastName) {
-      return `${firstName[0]}${lastName[0]}`.toUpperCase();
+    if (name && surname) {
+      return `${name[0]}${surname[0]}`.toUpperCase();
     }
-    if (fullName) {
-      const parts = fullName.split(" ");
-      if (parts.length >= 2) {
-        return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-      }
-      return fullName[0].toUpperCase();
+    if (name) {
+      return name[0].toUpperCase();
+    }
+    if (surname) {
+      return surname[0].toUpperCase();
     }
     return "K";
   };
@@ -207,7 +281,7 @@ function Profile() {
               <div className="p-4 bg-red-50 rounded-xl border border-red-100">
                 <p className="text-sm text-gray-600 mb-1">Ad</p>
                 <p className="text-lg font-semibold text-gray-800">
-                  {firstName || "Belirtilmemiş"}
+                  {name || "Belirtilmemiş"}
                 </p>
               </div>
 
@@ -215,7 +289,7 @@ function Profile() {
               <div className="p-4 bg-rose-50 rounded-xl border border-rose-100">
                 <p className="text-sm text-gray-600 mb-1">Soyad</p>
                 <p className="text-lg font-semibold text-gray-800">
-                  {lastName || "Belirtilmemiş"}
+                  {surname || "Belirtilmemiş"}
                 </p>
               </div>
 
@@ -236,6 +310,65 @@ function Profile() {
               </div>
             </div>
           </div>
+
+          {/* Recommendations API Response */}
+          {recommendations && (
+            <div className="mt-8">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">
+                Recommendations API Response
+              </h3>
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                <div className="mb-4">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">
+                    Endpoint: {ONBOARDING_API_BASE_URL}/recommendations/{localStorage.getItem("userId")}
+                  </p>
+                  <p className="text-sm text-gray-600 mb-1">
+                    Status: <span className="font-semibold">{recommendations.status} {recommendations.statusText}</span>
+                  </p>
+                </div>
+                {recommendations.error ? (
+                  <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                    <p className="text-sm text-red-700">{recommendations.error}</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="bg-white rounded-lg p-4 border border-gray-300 overflow-auto mb-4">
+                      <pre className="text-xs text-gray-800 whitespace-pre-wrap break-words">
+                        {JSON.stringify(recommendations.parsedData, null, 2)}
+                      </pre>
+                    </div>
+                    <details className="mt-4">
+                      <summary className="text-sm font-semibold text-gray-700 cursor-pointer hover:text-red-600">
+                        Raw Response (Ham Veri)
+                      </summary>
+                      <div className="mt-2 bg-white rounded-lg p-4 border border-gray-300 overflow-auto">
+                        <pre className="text-xs text-gray-800 whitespace-pre-wrap break-words">
+                          {recommendations.rawResponse}
+                        </pre>
+                      </div>
+                    </details>
+                    <details className="mt-4">
+                      <summary className="text-sm font-semibold text-gray-700 cursor-pointer hover:text-red-600">
+                        Response Headers
+                      </summary>
+                      <div className="mt-2 bg-white rounded-lg p-4 border border-gray-300 overflow-auto">
+                        <pre className="text-xs text-gray-800 whitespace-pre-wrap break-words">
+                          {JSON.stringify(recommendations.headers, null, 2)}
+                        </pre>
+                      </div>
+                    </details>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {recommendationsLoading && (
+            <div className="mt-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+              <p className="mt-2 text-sm text-gray-600">Recommendations yükleniyor...</p>
+            </div>
+          )}
 
           {/* Keşfet Algoritmasını Sıfırla */}
           <div className="mt-8">
