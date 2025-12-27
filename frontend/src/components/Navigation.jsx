@@ -62,17 +62,12 @@ function Navigation() {
               ))}
               
               {isAuthenticated() ? (
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-600">
-                    Hoş geldin, {user?.name}
-                  </span>
-                  <button
-                    onClick={logout}
-                    className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all"
-                  >
-                    Çıkış Yap
-                  </button>
-                </div>
+                <button
+                  onClick={logout}
+                  className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all"
+                >
+                  Çıkış Yap
+                </button>
               ) : (
                 <div className="flex items-center space-x-4">
                   <Link
@@ -206,20 +201,15 @@ function Navigation() {
             
             <div className="pt-6 mt-6 border-t border-red-100 px-4">
               {isAuthenticated() ? (
-                <div className="space-y-2">
-                  <div className="px-4 py-2 text-sm text-gray-600">
-                    Hoş geldin, {user?.name}
-                  </div>
-                  <button
-                    onClick={() => {
-                      closeMenu();
-                      logout();
-                    }}
-                    className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all"
-                  >
-                    Çıkış Yap
-                  </button>
-                </div>
+                <button
+                  onClick={() => {
+                    closeMenu();
+                    logout();
+                  }}
+                  className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all"
+                >
+                  Çıkış Yap
+                </button>
               ) : (
                 <div className="space-y-2">
                   <Link
