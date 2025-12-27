@@ -53,17 +53,21 @@ function Register() {
       return;
     }
 
-    // Şifre validasyonu: En az 8 karakter, en az 1 sayı, en az 1 özel karakter
+    // Şifre validasyonu: En az 8 karakter, 1 büyük harf, 1 sayı, 1 özel karakter (@#$%^&+=!)
     if (formData.password.length < 8) {
       setError("Şifre en az 8 karakter olmalıdır!");
+      return;
+    }
+    if (!/[A-Z]/.test(formData.password)) {
+      setError("Şifre en az 1 büyük harf içermelidir!");
       return;
     }
     if (!/[0-9]/.test(formData.password)) {
       setError("Şifre en az 1 rakam içermelidir!");
       return;
     }
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)) {
-      setError("Şifre en az 1 özel karakter içermelidir!");
+    if (!/[@#$%^&+=!]/.test(formData.password)) {
+      setError("Lütfen geçerli karakterlerden birini kullan (@#$%^&+=!)");
       return;
     }
 
@@ -108,7 +112,7 @@ function Register() {
       let data;
       try {
         data = JSON.parse(responseText);
-      } catch (e) {
+      } catch {
         // JSON değilse, text olarak kullan
         data = { message: responseText };
       }
@@ -130,9 +134,37 @@ function Register() {
         });
         setStep(2);
       } else {
-        setError(
-          data.message || responseText || "Kayıt işlemi başarısız oldu!"
-        );
+        // Backend'den gelen hata mesajını kontrol et (hem JSON hem text)
+        let errorMessage = data.message || data.error || responseText || "Kayıt işlemi başarısız oldu!";
+        const errorMessageLower = errorMessage.toLowerCase();
+        
+        // E-posta zaten kayıtlı hatası kontrolü (tüm olası formatlar)
+        if (errorMessageLower.includes("duplicate key") || 
+            errorMessageLower.includes("already exists") ||
+            errorMessageLower.includes("uk18p06wterj5o406gllafcs2pu") ||
+            (errorMessageLower.includes("email") && errorMessageLower.includes("exists")) ||
+            errorMessageLower.includes("unique constraint") ||
+            (errorMessageLower.includes("email") && errorMessageLower.includes("duplicate"))) {
+          errorMessage = "Bu e-posta adresi zaten kayıtlı. Lütfen farklı bir e-posta adresi kullanın veya giriş yapın.";
+        }
+        // Şifre validasyon hatası kontrolü
+        else if (errorMessageLower.includes("şifre en az 8 karakter olmalı") || 
+            errorMessageLower.includes("password") ||
+            errorMessageLower.includes("pattern") ||
+            errorMessageLower.includes("validation failed")) {
+          errorMessage = "Lütfen geçerli karakterlerden birini kullan (@#$%^&+=!)";
+        }
+        // Genel SQL hatası
+        else if (errorMessageLower.includes("sql") || errorMessageLower.includes("constraint")) {
+          // E-posta ile ilgili constraint hatası
+          if (errorMessageLower.includes("email")) {
+            errorMessage = "Bu e-posta adresi zaten kayıtlı. Lütfen farklı bir e-posta adresi kullanın.";
+          } else {
+            errorMessage = "Kayıt işlemi sırasında bir hata oluştu. Lütfen bilgilerinizi kontrol edip tekrar deneyin.";
+          }
+        }
+        
+        setError(errorMessage);
       }
     } catch (error) {
       console.error("Register error:", error);
@@ -782,14 +814,14 @@ function Register() {
                 </li>
                 <li
                   className={`flex items-center ${
-                    /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)
+                    /[A-Z]/.test(formData.password)
                       ? "text-green-600"
                       : "text-gray-500"
                   }`}
                 >
                   <svg
                     className={`w-3 h-3 mr-2 ${
-                      /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)
+                      /[A-Z]/.test(formData.password)
                         ? "text-green-500"
                         : "text-gray-400"
                     }`}
@@ -802,7 +834,31 @@ function Register() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  En az 1 özel karakter (!@#$%^&*...)
+                  En az 1 büyük harf
+                </li>
+                <li
+                  className={`flex items-center ${
+                    /[@#$%^&+=!]/.test(formData.password)
+                      ? "text-green-600"
+                      : "text-gray-500"
+                  }`}
+                >
+                  <svg
+                    className={`w-3 h-3 mr-2 ${
+                      /[@#$%^&+=!]/.test(formData.password)
+                        ? "text-green-500"
+                        : "text-gray-400"
+                    }`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  En az 1 özel karakter (@#$%^&+=!)
                 </li>
               </ul>
             </div>
