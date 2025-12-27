@@ -1,11 +1,9 @@
 import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { API_KEY, API_BASE_URL, ONBOARDING_API_BASE_URL } from "../config/api";
+import { API_KEY, ONBOARDING_API_BASE_URL } from "../config/api";
 
 function Profile() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [isResetting, setIsResetting] = useState(false);
 
   const handleResetAlgorithm = async () => {
@@ -81,31 +79,7 @@ function Profile() {
       }
 
       if (resetScoresResponse.ok && resetResponse.ok) {
-        // firstLogin'ı true yap ki kullanıcı tekrar ilgi alanı seçimine yönlendirilsin
-        try {
-          await fetch(`${API_BASE_URL}/users/updateFirstLogin`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              "X-API-KEY": API_KEY,
-              Authorization: `Bearer ${token}`,
-            },
-          });
-        } catch (error) {
-          console.error("Update firstLogin error:", error);
-        }
-
-        // Account data'yı güncelle
-        const accountData = JSON.parse(
-          localStorage.getItem("accountData") || "{}"
-        );
-        accountData.firstLogin = true;
-        localStorage.setItem("accountData", JSON.stringify(accountData));
-
-        alert("Keşfet algoritması başarıyla sıfırlandı! İlgi alanlarınızı tekrar seçmeniz gerekecek.");
-        
-        // İlgi alanları seçim sayfasına yönlendir
-        navigate("/interests");
+        alert("Keşfet algoritması başarıyla sıfırlandı!");
       } else {
         const errorMessage = resetScoresData.message || resetData.message || "Algoritma sıfırlanırken bir hata oluştu. Lütfen tekrar deneyin.";
         alert(errorMessage);
