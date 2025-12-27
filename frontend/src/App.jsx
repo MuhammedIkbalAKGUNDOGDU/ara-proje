@@ -13,6 +13,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import InterestsSelection from "./pages/InterestsSelection";
+import ReadHistory from "./pages/ReadHistory";
+import HistoryNewsDetail from "./pages/HistoryNewsDetail";
 
 function App() {
   return (
@@ -30,6 +32,8 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/interests" element={<ProtectedRoute><InterestsSelection /></ProtectedRoute>} />
+          <Route path="/read-history" element={<ProtectedRoute><ReadHistory /></ProtectedRoute>} />
+          <Route path="/read-history/:id" element={<ProtectedRoute><HistoryNewsDetail /></ProtectedRoute>} />
         </Routes>
       </div>
     </AuthProvider>
