@@ -512,6 +512,17 @@ function NewsFeed() {
             readTime: "3 dk",
             url: item.url || "#",
           }));
+          
+          // Kategorileri say ve konsola yazdır
+          const categoryCount = {};
+          formattedNews.forEach((news) => {
+            const category = news.category || "Genel";
+            categoryCount[category] = (categoryCount[category] || 0) + 1;
+          });
+          console.log("📊 Kategori Sayıları:", categoryCount);
+          console.log("📈 Toplam Kategori Sayısı:", Object.keys(categoryCount).length);
+          console.log("📰 Toplam Haber Sayısı:", formattedNews.length);
+          
           setNewsData(formattedNews);
         } else if (
           response.ok &&
@@ -532,6 +543,17 @@ function NewsFeed() {
             readTime: "3 dk",
             url: item.url || "#",
           }));
+          
+          // Kategorileri say ve konsola yazdır
+          const categoryCount = {};
+          formattedNews.forEach((news) => {
+            const category = news.category || "Genel";
+            categoryCount[category] = (categoryCount[category] || 0) + 1;
+          });
+          console.log("📊 Kategori Sayıları:", categoryCount);
+          console.log("📈 Toplam Kategori Sayısı:", Object.keys(categoryCount).length);
+          console.log("📰 Toplam Haber Sayısı:", formattedNews.length);
+          
           setNewsData(formattedNews);
         }
       } catch (error) {
