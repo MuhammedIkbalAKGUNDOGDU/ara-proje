@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Heart, ThumbsDown, Bookmark, Share2 } from "lucide-react";
+import { ArrowLeft, Heart, ThumbsDown, Share2 } from "lucide-react";
 import { API_KEY, FEED_API_BASE_URL, INTERACTION_API_BASE_URL } from "../config/api";
 
 // Default haber görseli
@@ -33,7 +33,6 @@ function NewsDetail() {
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [isDisliked, setIsDisliked] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [isShared, setIsShared] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageSrc, setImageSrc] = useState(DEFAULT_NEWS_IMAGE);
@@ -346,10 +345,6 @@ function NewsDetail() {
     }
   };
 
-  const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-  };
-
   const handleShare = () => {
     setIsShared(true);
     if (navigator.share && news) {
@@ -466,21 +461,6 @@ function NewsDetail() {
             <ThumbsDown
               className="w-6 h-6"
               fill={isDisliked ? "currentColor" : "none"}
-              stroke="currentColor"
-            />
-          </button>
-
-          <button
-            onClick={handleBookmark}
-            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
-              isBookmarked
-                ? "bg-yellow-500 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <Bookmark
-              className="w-6 h-6"
-              fill={isBookmarked ? "currentColor" : "none"}
               stroke="currentColor"
             />
           </button>
