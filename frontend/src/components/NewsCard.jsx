@@ -3,22 +3,19 @@ import { useNavigate } from "react-router-dom";
 import {
   Share2,
   X,
-  Palette,
   Laptop,
   Trophy,
-  Music,
   Microscope,
-  Plane,
-  UtensilsCrossed,
-  Film,
-  BookOpen,
-  Shirt,
-  Gamepad2,
-  Trees,
-  Camera,
-  GraduationCap,
   HeartPulse,
-  DollarSign,
+  Briefcase,
+  Theater,
+  Landmark,
+  ShieldAlert,
+  GraduationCap,
+  Leaf,
+  UtensilsCrossed,
+  Sparkles,
+  Plane,
   Newspaper,
 } from "lucide-react";
 
@@ -32,54 +29,47 @@ const getCategoryIcon = (category) => {
   const iconProps = { className: "w-32 h-32 text-white" };
 
   switch (categoryLower) {
-    case "art":
-    case "sanat":
-      return <Palette {...iconProps} />;
     case "technology":
     case "teknoloji":
       return <Laptop {...iconProps} />;
     case "sports":
     case "spor":
       return <Trophy {...iconProps} />;
-    case "music":
-    case "müzik":
-      return <Music {...iconProps} />;
     case "science":
     case "bilim":
       return <Microscope {...iconProps} />;
-    case "travel":
-    case "seyahat":
-      return <Plane {...iconProps} />;
-    case "food":
-    case "yemek":
-      return <UtensilsCrossed {...iconProps} />;
-    case "movies":
-    case "film":
-      return <Film {...iconProps} />;
-    case "books":
-    case "kitap":
-      return <BookOpen {...iconProps} />;
-    case "fashion":
-    case "moda":
-      return <Shirt {...iconProps} />;
-    case "gaming":
-    case "oyun":
-      return <Gamepad2 {...iconProps} />;
-    case "nature":
-    case "doğa":
-      return <Trees {...iconProps} />;
-    case "photography":
-    case "fotoğraf":
-      return <Camera {...iconProps} />;
-    case "education":
-    case "eğitim":
-      return <GraduationCap {...iconProps} />;
     case "health":
     case "sağlık":
       return <HeartPulse {...iconProps} />;
-    case "economy":
-    case "ekonomi":
-      return <DollarSign {...iconProps} />;
+    case "business":
+    case "iş":
+    case "iş dünyası":
+      return <Briefcase {...iconProps} />;
+    case "entertainment":
+    case "eğlence":
+      return <Theater {...iconProps} />;
+    case "politics":
+    case "politika":
+      return <Landmark {...iconProps} />;
+    case "crime":
+    case "suç":
+      return <ShieldAlert {...iconProps} />;
+    case "education":
+    case "eğitim":
+      return <GraduationCap {...iconProps} />;
+    case "environment":
+    case "çevre":
+      return <Leaf {...iconProps} />;
+    case "food":
+    case "yemek":
+      return <UtensilsCrossed {...iconProps} />;
+    case "lifestyle":
+    case "yaşam tarzı":
+      return <Sparkles {...iconProps} />;
+    case "tourism":
+    case "turizm":
+    case "seyahat":
+      return <Plane {...iconProps} />;
     default:
       return <Newspaper {...iconProps} />;
   }
@@ -90,54 +80,47 @@ const getCategoryGradient = (category) => {
   const categoryLower = (category || "").toLowerCase();
 
   switch (categoryLower) {
-    case "art":
-    case "sanat":
-      return "from-purple-600 via-pink-600 to-red-600";
     case "technology":
     case "teknoloji":
       return "from-blue-600 via-cyan-600 to-blue-500";
     case "sports":
     case "spor":
       return "from-orange-600 via-red-600 to-orange-500";
-    case "music":
-    case "müzik":
-      return "from-pink-600 via-purple-600 to-indigo-600";
     case "science":
     case "bilim":
       return "from-indigo-600 via-blue-600 to-cyan-600";
-    case "travel":
-    case "seyahat":
-      return "from-sky-600 via-blue-500 to-cyan-500";
-    case "food":
-    case "yemek":
-      return "from-orange-500 via-red-500 to-pink-500";
-    case "movies":
-    case "film":
-      return "from-gray-800 via-gray-700 to-gray-600";
-    case "books":
-    case "kitap":
-      return "from-amber-600 via-orange-600 to-red-600";
-    case "fashion":
-    case "moda":
-      return "from-pink-500 via-rose-500 to-red-500";
-    case "gaming":
-    case "oyun":
-      return "from-green-600 via-emerald-600 to-teal-600";
-    case "nature":
-    case "doğa":
-      return "from-green-600 via-emerald-600 to-green-500";
-    case "photography":
-    case "fotoğraf":
-      return "from-gray-700 via-gray-600 to-gray-500";
-    case "education":
-    case "eğitim":
-      return "from-blue-600 via-indigo-600 to-purple-600";
     case "health":
     case "sağlık":
       return "from-red-600 via-pink-600 to-rose-600";
-    case "economy":
-    case "ekonomi":
+    case "business":
+    case "iş":
+    case "iş dünyası":
+      return "from-slate-600 via-gray-600 to-slate-500";
+    case "entertainment":
+    case "eğlence":
+      return "from-purple-600 via-pink-600 to-rose-600";
+    case "politics":
+    case "politika":
+      return "from-blue-700 via-indigo-700 to-blue-600";
+    case "crime":
+    case "suç":
+      return "from-red-700 via-rose-700 to-red-600";
+    case "education":
+    case "eğitim":
+      return "from-blue-600 via-indigo-600 to-purple-600";
+    case "environment":
+    case "çevre":
       return "from-green-600 via-emerald-600 to-teal-600";
+    case "food":
+    case "yemek":
+      return "from-orange-500 via-red-500 to-pink-500";
+    case "lifestyle":
+    case "yaşam tarzı":
+      return "from-pink-500 via-rose-500 to-red-500";
+    case "tourism":
+    case "turizm":
+    case "seyahat":
+      return "from-sky-600 via-blue-500 to-cyan-500";
     default:
       return "from-gray-600 via-gray-500 to-gray-400";
   }
