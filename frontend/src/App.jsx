@@ -15,6 +15,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import InterestsSelection from "./pages/InterestsSelection";
 import ReadHistory from "./pages/ReadHistory";
 import HistoryNewsDetail from "./pages/HistoryNewsDetail";
+import ContactForms from "./pages/ContactForms";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Route path="/interests" element={<ProtectedRoute><InterestsSelection /></ProtectedRoute>} />
           <Route path="/read-history" element={<ProtectedRoute><ReadHistory /></ProtectedRoute>} />
           <Route path="/read-history/:id" element={<ProtectedRoute><HistoryNewsDetail /></ProtectedRoute>} />
+          <Route path="/contact-forms" element={<ProtectedRoute><ContactForms /></ProtectedRoute>} />
         </Routes>
       </div>
     </AuthProvider>
