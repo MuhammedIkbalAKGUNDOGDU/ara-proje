@@ -38,6 +38,7 @@ function NewsDetail() {
   const [imageError, setImageError] = useState(false);
   const [imageSrc, setImageSrc] = useState(DEFAULT_NEWS_IMAGE);
   const [showOriginalLink, setShowOriginalLink] = useState(false);
+  const [currentImageSrc, setCurrentImageSrc] = useState(null);
   
   // Zaman takibi ve interaction data
   const detailViewStartTime = useRef(null);
@@ -74,7 +75,9 @@ function NewsDetail() {
       setNews(formattedNews);
       newsTitleRef.current = formattedNews.title;
       // image_url'i direkt kullan, validate edilmiş değil
-      setImageSrc(newsDataFromState.image_url || DEFAULT_NEWS_IMAGE);
+      const imageUrl = newsDataFromState.image_url || newsDataFromState.image || DEFAULT_NEWS_IMAGE;
+      setImageSrc(imageUrl);
+      setCurrentImageSrc(imageUrl);
       
       // Category'yi güncelle
       if (formattedNews.category) {
@@ -144,7 +147,9 @@ function NewsDetail() {
       setNews(formattedNews);
       newsTitleRef.current = formattedNews.title;
       // image_url'i direkt kullan, validate edilmiş değil
-      setImageSrc(newsDataFromState.image_url || DEFAULT_NEWS_IMAGE);
+      const imageUrl = foundNews.image_url || validatedImage || DEFAULT_NEWS_IMAGE;
+      setImageSrc(imageUrl);
+      setCurrentImageSrc(imageUrl);
               
               // Category'yi güncelle
               if (formattedNews.category) {
@@ -305,8 +310,23 @@ function NewsDetail() {
   }, []);
 
   const handleImageError = (e) => {
-    if (!imageError) {
+    const currentSrc = e.target.src;
+    
+    // Eğer image_url yüklenemezse, haber akışındaki görseli dene (news.image)
+    if (news?.image_url && currentSrc.includes(news.image_url)) {
+      if (news?.image && news.image !== news.image_url) {
+        setCurrentImageSrc(news.image);
+        setImageSrc(news.image);
+        e.target.src = news.image;
+        setImageError(false);
+        return;
+      }
+    }
+    
+    // Eğer news.image de yüklenemezse veya yoksa default görseli kullan
+    if (!imageError || (news?.image && currentSrc.includes(news.image))) {
       setImageError(true);
+      setCurrentImageSrc(DEFAULT_NEWS_IMAGE);
       setImageSrc(DEFAULT_NEWS_IMAGE);
       e.target.onerror = null;
     }
@@ -386,10 +406,15 @@ function NewsDetail() {
         {/* Image Container */}
         <div className="flex items-center justify-center py-8" style={{ minHeight: '400px' }}>
           <img
-            src={news?.image_url || news?.image || imageSrc || DEFAULT_NEWS_IMAGE}
+            src={currentImageSrc || news?.image_url || news?.image || imageSrc || DEFAULT_NEWS_IMAGE}
             alt={news.title}
             className="max-w-full max-h-[600px] w-auto h-auto object-contain"
             onError={handleImageError}
+            onLoad={() => {
+              if (imageError) {
+                setImageError(false);
+              }
+            }}
           />
         </div>
 
