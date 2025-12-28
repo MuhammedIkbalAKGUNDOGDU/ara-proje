@@ -175,13 +175,14 @@ function NewsCard({ news, isActive, onNext, onPrevious, onShare, onCardClick }) 
       onCardClick();
     }
 
-    // Süreyi state ile detay sayfasına gönder
+    // Tüm haber verisini state ile detay sayfasına gönder
     navigate(`/news/${news.id}`, {
       state: {
         cardViewDuration: cardViewDuration.current,
         firstSpendingTime: cardViewDuration.current / 1000, // saniye cinsinden
         newsId: news.id,
         category: news.category,
+        newsData: news, // Tüm haber verisi
       },
     });
   };

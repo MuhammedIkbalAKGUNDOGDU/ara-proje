@@ -9,7 +9,7 @@ function Profile() {
   const [loading, setLoading] = useState(true);
   const [recommendations, setRecommendations] = useState(null);
   const [recommendationsLoading, setRecommendationsLoading] = useState(true);
-  const [chartType, setChartType] = useState("bar"); // "bar" veya "pie"
+  const [chartType, setChartType] = useState("bar"); // "bar", "pie" veya "score"
 
   useEffect(() => {
     // Account bilgilerini yükle
@@ -381,6 +381,16 @@ function Profile() {
                   >
                     Dairesel Grafik
                   </button>
+                  <button
+                    onClick={() => setChartType("score")}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      chartType === "score"
+                        ? "bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-md"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    Puanlar
+                  </button>
                 </div>
               </div>
 
@@ -446,7 +456,7 @@ function Profile() {
                     })}
                   </div>
                 </div>
-              ) : (
+              ) : chartType === "pie" ? (
                 // Dairesel Grafik (Pie Chart)
                 <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                   <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
@@ -547,6 +557,53 @@ function Profile() {
                         );
                       })}
                     </div>
+                  </div>
+                </div>
+              ) : (
+                // Score Listesi
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                  <div className="space-y-3">
+                    {recommendations.normalizedCategories.map((category, index) => {
+                      const categoryNames = {
+                        economy: "Ekonomi",
+                        science: "Bilim",
+                        travel: "Seyahat",
+                        movie: "Film",
+                        book: "Kitap",
+                        nature: "Doğa",
+                        technology: "Teknoloji",
+                        sports: "Spor",
+                        music: "Müzik",
+                        food: "Yemek",
+                        game: "Oyun",
+                        education: "Eğitim",
+                        art: "Sanat",
+                        fashion: "Moda",
+                        photography: "Fotoğraf",
+                        health: "Sağlık",
+                        business: "İş Dünyası",
+                        entertainment: "Eğlence",
+                        politics: "Politika",
+                        crime: "Suç",
+                        environment: "Çevre",
+                        lifestyle: "Yaşam Tarzı",
+                        tourism: "Turizm"
+                      };
+                      
+                      const categoryName = categoryNames[category.category] || category.category;
+                      const score = category.score || 0;
+                      
+                      return (
+                        <div key={index} className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                          <span className="text-base font-medium text-gray-800">
+                            {categoryName}
+                          </span>
+                          <span className="text-xl font-bold text-red-600">
+                            {score.toFixed(2)}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
