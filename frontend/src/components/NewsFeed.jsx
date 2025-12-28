@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import NewsCard from "./NewsCard";
 import { useAuth } from "../contexts/AuthContext";
-import { API_KEY, FEED_API_BASE_URL } from "../config/api";
+import { API_KEY, FEED_API_BASE_URL, INTERACTION_API_BASE_URL } from "../config/api";
 
 // Görsel URL'sini doğrula
 const validateImageUrl = (url) => {
@@ -33,6 +33,11 @@ function NewsFeed() {
   const touchStartY = useRef(0);
   const touchEndY = useRef(0);
   const lastWheelTimeRef = useRef(0);
+  
+  // Interaction tracking için refs
+  const cardViewStartTimes = useRef({}); // Her kart için başlangıç zamanı
+  const cardInteractionData = useRef({}); // Her kart için interaction verileri (like, dislike, share, click_detail)
+  const previousIndexRef = useRef(0);
 
   // Navigasyon fonksiyonları - önce tanımlanmalı
   const goToNext = useCallback(() => {
@@ -191,6 +196,172 @@ function NewsFeed() {
       }
     }
   };
+
+  // Track-read API isteği gönder
+  const sendTrackReadAPI = useCallback(async (newsId) => {
+    const token = localStorage.getItem("token");
+    const userId = user?.id || localStorage.getItem("customerId");
+    if (!token || !userId) return;
+
+    const trackReadData = {
+      user_id: userId.toString(),
+      news_id: newsId,
+    };
+
+    try {
+      console.log("Track-read API Request:", {
+        url: `${FEED_API_BASE_URL}/track-read`,
+        method: "POST",
+        body: trackReadData,
+      });
+
+      const response = await fetch(`${FEED_API_BASE_URL}/track-read`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-KEY": API_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(trackReadData),
+      });
+
+      const responseText = await response.text();
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch {
+        responseData = { message: responseText };
+      }
+
+      console.log("Track-read API Response:", {
+        status: response.status,
+        statusText: response.statusText,
+        data: responseData,
+      });
+    } catch (error) {
+      console.error("Track-read API error:", error);
+    }
+  }, [user]);
+
+  // Interaction API isteği gönder
+  const sendInteractionAPI = useCallback(async (newsId, category, firstSpendingTime, clickDetail, like = "no", dislike = "no", share = "no", secondSpendingTime = 0.0) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const interactionData = {
+      news_id: newsId,
+      category: category,
+      like: like,
+      dislike: dislike,
+      first_spending_time: firstSpendingTime,
+      click_detail: clickDetail,
+      second_spending_time: secondSpendingTime,
+      share: share,
+    };
+
+    try {
+      console.log("Interaction API Request:", {
+        url: `${INTERACTION_API_BASE_URL}/interaction`,
+        method: "POST",
+        body: interactionData,
+      });
+
+      const response = await fetch(`${INTERACTION_API_BASE_URL}/interaction`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-KEY": API_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(interactionData),
+      });
+
+      const responseText = await response.text();
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch {
+        responseData = { message: responseText };
+      }
+
+      console.log("Interaction API Response:", {
+        status: response.status,
+        statusText: response.statusText,
+        data: responseData,
+      });
+    } catch (error) {
+      console.error("Interaction API error:", error);
+    }
+  }, []);
+
+  // Kart görüntülenme süresini takip et ve kart değiştiğinde API isteği gönder
+  useEffect(() => {
+    // Önceki kart için süreyi hesapla ve API isteği gönder
+    if (previousIndexRef.current !== currentIndex && newsData.length > 0) {
+      const previousNews = newsData[previousIndexRef.current];
+      if (previousNews) {
+        const startTime = cardViewStartTimes.current[previousNews.id];
+        if (startTime) {
+          const spendingTime = (Date.now() - startTime) / 1000; // saniye cinsinden
+          const interactionData = cardInteractionData.current[previousNews.id] || {};
+          
+          // Eğer detay sayfasına gidildiyse (click_detail: "yes"), NewsFeed'de API isteği gönderme
+          // Çünkü NewsDetail'de gönderilecek
+          if (interactionData.clickDetail !== "yes") {
+            // Interaction API isteği gönder
+            sendInteractionAPI(
+              previousNews.id,
+              previousNews.category || "general",
+              spendingTime,
+              interactionData.clickDetail || "no",
+              interactionData.like || "no",
+              interactionData.dislike || "no",
+              interactionData.share || "no"
+            );
+            
+            // Track-read API isteği gönder
+            sendTrackReadAPI(previousNews.id);
+          }
+
+          // Önceki kartın verilerini temizle
+          delete cardViewStartTimes.current[previousNews.id];
+          delete cardInteractionData.current[previousNews.id];
+        }
+      }
+    }
+
+    // Yeni kart için zaman saymaya başla
+    if (newsData.length > 0 && newsData[currentIndex]) {
+      const currentNews = newsData[currentIndex];
+      cardViewStartTimes.current[currentNews.id] = Date.now();
+      
+      // Interaction data'yı başlat
+      if (!cardInteractionData.current[currentNews.id]) {
+        cardInteractionData.current[currentNews.id] = {
+          like: "no",
+          dislike: "no",
+          share: "no",
+          clickDetail: "no",
+        };
+      }
+    }
+
+    previousIndexRef.current = currentIndex;
+  }, [currentIndex, newsData, sendInteractionAPI, sendTrackReadAPI]);
+
+  // Share callback - NewsCard'dan çağrılacak
+  const handleShare = useCallback((newsId) => {
+    if (cardInteractionData.current[newsId]) {
+      cardInteractionData.current[newsId].share = "yes";
+    }
+  }, []);
+
+  // Haber detay sayfasına gidildiğinde click_detail'i işaretle
+  const handleCardClick = useCallback((newsId) => {
+    if (cardInteractionData.current[newsId]) {
+      cardInteractionData.current[newsId].clickDetail = "yes";
+    }
+  }, []);
 
   // Scroll pozisyonunu güncelle - klavye ve programatik navigasyon için
   useEffect(() => {
@@ -409,6 +580,8 @@ function NewsFeed() {
               isActive={index === currentIndex}
               onNext={goToNext}
               onPrevious={goToPrevious}
+              onShare={() => handleShare(news.id)}
+              onCardClick={() => handleCardClick(news.id)}
             />
           </div>
         ))}

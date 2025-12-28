@@ -126,7 +126,7 @@ const getCategoryGradient = (category) => {
   }
 };
 
-function NewsCard({ news, isActive, onNext, onPrevious }) {
+function NewsCard({ news, isActive, onNext, onPrevious, onShare, onCardClick }) {
   const navigate = useNavigate();
   const [isNotInterested, setIsNotInterested] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -170,10 +170,18 @@ function NewsCard({ news, isActive, onNext, onPrevious }) {
       cardViewDuration.current = Date.now() - cardViewStartTime.current;
     }
 
+    // click_detail'i işaretle
+    if (onCardClick) {
+      onCardClick();
+    }
+
     // Süreyi state ile detay sayfasına gönder
     navigate(`/news/${news.id}`, {
       state: {
         cardViewDuration: cardViewDuration.current,
+        firstSpendingTime: cardViewDuration.current / 1000, // saniye cinsinden
+        newsId: news.id,
+        category: news.category,
       },
     });
   };
@@ -187,6 +195,12 @@ function NewsCard({ news, isActive, onNext, onPrevious }) {
 
   const handleShare = (e) => {
     e.stopPropagation();
+    
+    // Share durumunu kaydet
+    if (onShare) {
+      onShare();
+    }
+    
     const shareUrl = `${window.location.origin}/news/${news.id}`;
     if (navigator.share) {
       navigator.share({
