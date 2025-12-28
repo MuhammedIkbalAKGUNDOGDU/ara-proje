@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import NewsCard from "./NewsCard";
 import { useAuth } from "../contexts/AuthContext";
 import { API_KEY, FEED_API_BASE_URL } from "../config/api";
@@ -23,6 +24,7 @@ const validateImageUrl = (url) => {
 
 function NewsFeed() {
   const { user } = useAuth();
+  const location = useLocation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
   const [newsData, setNewsData] = useState([]);
@@ -30,6 +32,7 @@ function NewsFeed() {
   const containerRef = useRef(null);
   const touchStartY = useRef(0);
   const touchEndY = useRef(0);
+  const lastWheelTimeRef = useRef(0);
 
   // Navigasyon fonksiyonları - önce tanımlanmalı
   const goToNext = useCallback(() => {
@@ -62,8 +65,19 @@ function NewsFeed() {
         scroll-behavior: smooth;
         scroll-snap-type: y mandatory;
         overflow-y: auto;
-        height: 100vh;
         width: 100%;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+      }
+      
+      @media (min-width: 768px) {
+        .news-container {
+          left: auto;
+          right: auto;
+        }
       }
       
       .news-item {
@@ -71,9 +85,9 @@ function NewsFeed() {
         scroll-snap-stop: always;
         display: flex;
         justify-content: center;
-        align-items: flex-start;
-        min-height: 100vh;
-        padding: 20px 0;
+        align-items: center;
+        height: 100vh;
+        width: 100%;
       }
       
       .news-container::-webkit-scrollbar {
@@ -118,15 +132,30 @@ function NewsFeed() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isScrolling, goToNext, goToPrevious]);
 
-  // Mouse wheel navigasyonu
+  // Mouse wheel navigasyonu - scroll snap ile kontrollü geçiş
   useEffect(() => {
     const handleWheel = (e) => {
       if (isScrolling) return;
 
-      e.preventDefault();
+      const now = Date.now();
+      const timeSinceLastWheel = now - lastWheelTimeRef.current;
+      
+      // Throttle: 300ms'den kısa sürede birden fazla wheel event'i engelle
+      if (timeSinceLastWheel < 300) {
+        e.preventDefault();
+        return;
+      }
+      
+      lastWheelTimeRef.current = now;
+      
+      // Scroll yönüne göre bir sonraki/önceki karta geç
       if (e.deltaY > 0) {
+        // Aşağı scroll
+        e.preventDefault();
         goToNext();
       } else if (e.deltaY < 0) {
+        // Yukarı scroll
+        e.preventDefault();
         goToPrevious();
       }
     };
@@ -163,57 +192,80 @@ function NewsFeed() {
     }
   };
 
-  // Scroll pozisyonunu güncelle
+  // Scroll pozisyonunu güncelle - klavye ve programatik navigasyon için
   useEffect(() => {
     if (containerRef.current && newsData.length > 0) {
       const items = containerRef.current.querySelectorAll('.news-item');
       if (items[currentIndex]) {
+        setIsScrolling(true);
         items[currentIndex].scrollIntoView({
           behavior: "smooth",
           block: "start",
         });
+        setTimeout(() => setIsScrolling(false), 500);
       }
     }
   }, [currentIndex, newsData.length]);
 
-  // Scroll event listener - kullanıcı manuel scroll yaparsa currentIndex'i güncelle
+  // Scroll event listener - scroll snap sonrası currentIndex'i güncelle
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    let scrollTimeout;
     const handleScroll = () => {
       if (isScrolling) return; // Programatik scroll sırasında çalışmasın
 
-      const items = container.querySelectorAll('.news-item');
-      const scrollTop = container.scrollTop;
-      const containerHeight = container.clientHeight;
-      
-      // Hangi item görünür alanda
-      let newIndex = 0;
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        const itemTop = item.offsetTop;
-        const itemHeight = item.offsetHeight;
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        const items = container.querySelectorAll('.news-item');
+        const scrollTop = container.scrollTop;
+        const containerHeight = container.clientHeight;
         
-        if (scrollTop + containerHeight / 2 >= itemTop && 
-            scrollTop + containerHeight / 2 < itemTop + itemHeight) {
-          newIndex = i;
-          break;
+        // Scroll snap ile hangi item görünür alanda
+        let newIndex = 0;
+        const threshold = containerHeight * 0.5; // Viewport'un ortası
+        
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const itemTop = item.offsetTop;
+          const itemBottom = itemTop + item.offsetHeight;
+          
+          // Item viewport'un ortasında mı?
+          if (scrollTop + threshold >= itemTop && scrollTop + threshold < itemBottom) {
+            newIndex = i;
+            break;
+          }
         }
-      }
 
-      if (
-        newIndex !== currentIndex &&
-        newIndex >= 0 &&
-        newIndex < newsData.length
-      ) {
-        setCurrentIndex(newIndex);
-      }
+        if (
+          newIndex !== currentIndex &&
+          newIndex >= 0 &&
+          newIndex < newsData.length
+        ) {
+          setCurrentIndex(newIndex);
+        }
+      }, 100); // 100ms debounce
     };
 
     container.addEventListener("scroll", handleScroll, { passive: true });
-    return () => container.removeEventListener("scroll", handleScroll);
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      clearTimeout(scrollTimeout);
+    };
   }, [currentIndex, isScrolling, newsData.length]);
+
+  // Sayfa yüklendiğinde veya route değiştiğinde scroll'u en üste al ve state'leri sıfırla
+  useEffect(() => {
+    // Scroll'u en üste al
+    if (containerRef.current) {
+      containerRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+    // State'leri sıfırla
+    setCurrentIndex(0);
+    setNewsData([]);
+    setLoading(true);
+  }, [location.pathname]); // Route değiştiğinde de çalışsın
 
   // Sayfa yüklendiğinde Feed API çağrısı yap
   useEffect(() => {
@@ -223,6 +275,12 @@ function NewsFeed() {
         setLoading(false);
         return;
       }
+
+      // Scroll'u en üste al
+      if (containerRef.current) {
+        containerRef.current.scrollTo({ top: 0, behavior: 'instant' });
+      }
+      setCurrentIndex(0);
 
       const userId = user.id;
       const token = localStorage.getItem("token");
@@ -307,6 +365,13 @@ function NewsFeed() {
         console.error("Feed API error:", error);
       } finally {
         setLoading(false);
+        // Veriler yüklendikten sonra scroll'u en üste al
+        setTimeout(() => {
+          if (containerRef.current) {
+            containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+          setCurrentIndex(0);
+        }, 100);
       }
     };
 
@@ -333,8 +398,7 @@ function NewsFeed() {
     <div className="min-h-screen bg-gray-50">
       <div
         ref={containerRef}
-        className="news-container relative mx-auto"
-        style={{ maxWidth: "33.33%" }}
+        className="news-container relative mx-auto w-full md:w-1/3"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
