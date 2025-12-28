@@ -46,84 +46,123 @@ function NewsDetail() {
   const newsTitleRef = useRef("Yükleniyor...");
 
   useEffect(() => {
-    const fetchNewsDetail = async () => {
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("customerId");
+    // State'den haber verisi var mı kontrol et
+    const newsDataFromState = location.state?.newsData;
+    
+    if (newsDataFromState) {
+      // State'den gelen veriyi direkt kullan
+      const validatedImage = validateImageUrl(newsDataFromState.image_url);
+      const formattedNews = {
+        id: newsDataFromState.id,
+        title: newsDataFromState.title || "Başlık Yok",
+        content: newsDataFromState.content || newsDataFromState.description || "İçerik bulunamadı.",
+        description: newsDataFromState.description || "",
+        summary: newsDataFromState.summary || newsDataFromState.description || "",
+        image: validatedImage,
+        image_url: newsDataFromState.image_url || null, // Orijinal image_url'i koru
+        category: newsDataFromState.category || "Genel",
+        author: "Haber Kaynağı",
+        publishDate: new Date().toLocaleDateString("tr-TR"),
+        readTime: "5 dk",
+        url: newsDataFromState.url || "#",
+        tags: newsDataFromState.tags || [],
+        entities: newsDataFromState.entities || [],
+        sentiment_label: newsDataFromState.sentiment_label || "",
+        sentiment_score: newsDataFromState.sentiment_score || null,
+      };
+      setNews(formattedNews);
+      newsTitleRef.current = formattedNews.title;
+      // image_url'i direkt kullan, validate edilmiş değil
+      setImageSrc(newsDataFromState.image_url || DEFAULT_NEWS_IMAGE);
+      
+      // Category'yi güncelle
+      if (formattedNews.category) {
+        categoryFromState.current = formattedNews.category;
+      }
+      
+      setLoading(false);
+    } else {
+      // State'de veri yoksa API'den çek (fallback - örneğin direkt URL ile gelindiğinde)
+      const fetchNewsDetail = async () => {
+        const token = localStorage.getItem("token");
+        const userId = localStorage.getItem("customerId");
 
-      try {
-        // Önce feed'den haberleri çek ve ilgili haberi bul
-        const response = await fetch(
-          `${FEED_API_BASE_URL}/feed/${userId}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "X-API-KEY": API_KEY,
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const responseText = await response.text();
-        let responseData;
         try {
-          responseData = JSON.parse(responseText);
-        } catch (e) {
-          responseData = { message: responseText };
-        }
+          // Önce feed'den haberleri çek ve ilgili haberi bul
+          const response = await fetch(
+            `${FEED_API_BASE_URL}/feed/${userId}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                "X-API-KEY": API_KEY,
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
-        if (response.ok) {
-          let newsArray = [];
-          if (Array.isArray(responseData)) {
-            newsArray = responseData;
-          } else if (responseData.data && Array.isArray(responseData.data)) {
-            newsArray = responseData.data;
+          const responseText = await response.text();
+          let responseData;
+          try {
+            responseData = JSON.parse(responseText);
+          } catch (e) {
+            responseData = { message: responseText };
           }
 
-          // ID'ye göre haberi bul
-          const foundNews = newsArray.find((item) => item.id === id);
+          if (response.ok) {
+            let newsArray = [];
+            if (Array.isArray(responseData)) {
+              newsArray = responseData;
+            } else if (responseData.data && Array.isArray(responseData.data)) {
+              newsArray = responseData.data;
+            }
 
-          if (foundNews) {
-            const validatedImage = validateImageUrl(foundNews.image_url);
-            const formattedNews = {
-              id: foundNews.id,
-              title: foundNews.title || "Başlık Yok",
-              content: foundNews.content || foundNews.description || "İçerik bulunamadı.",
-              description: foundNews.description || "",
-              summary: foundNews.summary || foundNews.description || "",
-              image: validatedImage,
-              image_url: foundNews.image_url || null,
-              category: foundNews.category || "Genel",
-              author: "Haber Kaynağı",
-              publishDate: new Date().toLocaleDateString("tr-TR"),
-              readTime: "5 dk",
-              url: foundNews.url || "#",
-              tags: foundNews.tags || [],
-              entities: foundNews.entities || [],
-              sentiment_label: foundNews.sentiment_label || "",
-              sentiment_score: foundNews.sentiment_score || null,
-            };
-            setNews(formattedNews);
-            newsTitleRef.current = formattedNews.title;
-            setImageSrc(validatedImage || DEFAULT_NEWS_IMAGE);
-            
-            // Category'yi güncelle
-            if (formattedNews.category) {
-              categoryFromState.current = formattedNews.category;
+            // ID'ye göre haberi bul
+            const foundNews = newsArray.find((item) => item.id === id);
+
+            if (foundNews) {
+              const validatedImage = validateImageUrl(foundNews.image_url);
+              const formattedNews = {
+                id: foundNews.id,
+                title: foundNews.title || "Başlık Yok",
+                content: foundNews.content || foundNews.description || "İçerik bulunamadı.",
+                description: foundNews.description || "",
+                summary: foundNews.summary || foundNews.description || "",
+                image: validatedImage,
+                image_url: foundNews.image_url || null,
+                category: foundNews.category || "Genel",
+                author: "Haber Kaynağı",
+                publishDate: new Date().toLocaleDateString("tr-TR"),
+                readTime: "5 dk",
+                url: foundNews.url || "#",
+                tags: foundNews.tags || [],
+                entities: foundNews.entities || [],
+                sentiment_label: foundNews.sentiment_label || "",
+                sentiment_score: foundNews.sentiment_score || null,
+              };
+      setNews(formattedNews);
+      newsTitleRef.current = formattedNews.title;
+      // image_url'i direkt kullan, validate edilmiş değil
+      setImageSrc(newsDataFromState.image_url || DEFAULT_NEWS_IMAGE);
+              
+              // Category'yi güncelle
+              if (formattedNews.category) {
+                categoryFromState.current = formattedNews.category;
+              }
             }
           }
+        } catch (error) {
+          console.error("News detail error:", error);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.error("News detail error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      };
 
-    if (id) {
-      fetchNewsDetail();
+      if (id) {
+        fetchNewsDetail();
+      }
     }
-  }, [id]);
+  }, [id, location.state]);
 
   // Track-read API isteği gönder
   const sendTrackReadAPI = useCallback(async (newsId) => {
@@ -322,7 +361,7 @@ function NewsDetail() {
       {/* Header Image */}
       <div className="relative h-96 w-full">
         <img
-          src={imageSrc}
+          src={news?.image_url || news?.image || imageSrc || DEFAULT_NEWS_IMAGE}
           alt={news.title}
           className="w-full h-full object-cover"
           onError={handleImageError}

@@ -505,6 +505,7 @@ function NewsFeed() {
             content: item.content || item.description || "İçerik bulunamadı.",
             summary: item.summary || item.description || "",
             image: validateImageUrl(item.image_url), // Geçersiz URL'ler null olacak, NewsCard default görsel kullanacak
+            image_url: item.image_url || null, // Orijinal image_url'i koru
             category: item.category || "Genel",
             author: "Haber Kaynağı",
             publishDate: new Date().toLocaleDateString("tr-TR"),
@@ -524,6 +525,7 @@ function NewsFeed() {
             content: item.content || item.description || "İçerik bulunamadı.",
             summary: item.summary || item.description || "",
             image: validateImageUrl(item.image_url), // Geçersiz URL'ler null olacak, NewsCard default görsel kullanacak
+            image_url: item.image_url || null, // Orijinal image_url'i koru
             category: item.category || "Genel",
             author: "Haber Kaynağı",
             publishDate: new Date().toLocaleDateString("tr-TR"),
