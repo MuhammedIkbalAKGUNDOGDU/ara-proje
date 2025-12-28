@@ -37,6 +37,7 @@ function NewsDetail() {
   const [isShared, setIsShared] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageSrc, setImageSrc] = useState(DEFAULT_NEWS_IMAGE);
+  const [showOriginalLink, setShowOriginalLink] = useState(false);
   
   // Zaman takibi ve interaction data
   const detailViewStartTime = useRef(null);
@@ -103,11 +104,11 @@ function NewsDetail() {
 
           const responseText = await response.text();
           let responseData;
-          try {
-            responseData = JSON.parse(responseText);
-          } catch (e) {
-            responseData = { message: responseText };
-          }
+        try {
+          responseData = JSON.parse(responseText);
+        } catch {
+          responseData = { message: responseText };
+        }
 
           if (response.ok) {
             let newsArray = [];
@@ -289,6 +290,20 @@ function NewsDetail() {
     };
   }, [id, isLiked, isDisliked, isShared, sendInteractionAPI, sendTrackReadAPI]);
 
+  // Tuş kombinasyonu ile orijinal haber linkini göster/gizle
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl + Shift + O kombinasyonu
+      if (e.ctrlKey && e.shiftKey && e.key === 'O') {
+        e.preventDefault();
+        setShowOriginalLink(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleImageError = (e) => {
     if (!imageError) {
       setImageError(true);
@@ -359,31 +374,33 @@ function NewsDetail() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header Image */}
-      <div className="relative h-96 w-full">
-        <img
-          src={news?.image_url || news?.image || imageSrc || DEFAULT_NEWS_IMAGE}
-          alt={news.title}
-          className="w-full h-full object-cover"
-          onError={handleImageError}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-        
+      <div className="relative w-full bg-gray-100">
         {/* Back Button */}
         <button
           onClick={() => navigate("/news")}
-          className="absolute top-4 left-4 z-10 p-2 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
+          className="absolute top-4 left-4 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-full text-gray-800 hover:bg-white transition-colors shadow-md"
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
 
-        {/* Title Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+        {/* Image Container */}
+        <div className="flex items-center justify-center py-8" style={{ minHeight: '400px' }}>
+          <img
+            src={news?.image_url || news?.image || imageSrc || DEFAULT_NEWS_IMAGE}
+            alt={news.title}
+            className="max-w-full max-h-[600px] w-auto h-auto object-contain"
+            onError={handleImageError}
+          />
+        </div>
+
+        {/* Title Section - Görselin altında */}
+        <div className="px-6 pb-6">
           <div className="max-w-4xl mx-auto">
-            <span className="inline-block bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full mb-3">
+            <span className="inline-block bg-red-100 text-red-700 text-xs px-3 py-1 rounded-full mb-3">
               {news.category}
             </span>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">{news.title}</h1>
-            <div className="flex items-center space-x-4 text-sm text-white/80">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gray-800">{news.title}</h1>
+            <div className="flex items-center space-x-4 text-sm text-gray-600">
               <span>{news.author}</span>
               <span>•</span>
               <span>{news.publishDate}</span>
@@ -544,7 +561,7 @@ function NewsDetail() {
           </div>
 
           {/* Original Article Link */}
-          {news.url && news.url !== "#" && (
+          {news.url && news.url !== "#" && showOriginalLink && (
             <div className="mt-8 pt-6 border-t border-gray-200">
               <a
                 href={news.url}
