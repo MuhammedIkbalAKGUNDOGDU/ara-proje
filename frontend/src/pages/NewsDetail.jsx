@@ -469,23 +469,23 @@ function NewsDetail() {
         </div>
 
         {/* Article Content */}
-        <article className="prose prose-lg max-w-none">
+        <article className="prose prose-xl max-w-none">
           {/* Summary */}
           {news.summary && (
-            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-r-lg">
-              <p className="text-gray-700 italic font-medium">{news.summary}</p>
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-5 mb-6 rounded-r-lg">
+              <p className="text-gray-700 italic font-medium text-2xl">{news.summary}</p>
             </div>
           )}
 
           {/* Description */}
           {news.description && news.description !== news.summary && (
-            <div className="bg-gray-50 p-4 mb-6 rounded-lg">
-              <p className="text-gray-600">{news.description}</p>
+            <div className="bg-gray-50 p-5 mb-6 rounded-lg">
+              <p className="text-gray-600 text-2xl">{news.description}</p>
             </div>
           )}
 
           {/* Main Content */}
-          <div className="text-gray-700 leading-relaxed whitespace-pre-line text-lg mb-8">
+          <div className="text-gray-700 leading-relaxed whitespace-pre-line text-2xl mb-8">
             {news.content}
           </div>
 
