@@ -50,12 +50,6 @@ function ReadHistory() {
           data = { message: responseText };
         }
 
-        console.log("Read History API Response:", {
-          status: response.status,
-          statusText: response.statusText,
-          rawResponse: responseText,
-          parsedData: data,
-        });
 
         if (response.ok) {
           // API'den gelen veriyi işle
@@ -143,53 +137,50 @@ function ReadHistory() {
               <p className="mt-4 text-gray-600">Henüz okuma geçmişiniz bulunmuyor.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {readHistory.map((news, index) => (
+            <div className="space-y-4">
+              {readHistory.map((news, index) => {
+                const newsId = news.news_id || news.id || news.newsId;
+                return (
                 <div
-                  key={news.id || index}
-                  onClick={() => handleNewsClick(news.id || news.newsId)}
-                  className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all cursor-pointer border border-gray-200 overflow-hidden transform hover:scale-105"
+                  key={newsId || index}
+                  onClick={() => handleNewsClick(newsId)}
+                  className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all cursor-pointer border border-gray-200 overflow-hidden flex flex-row"
                 >
                   {news.image_url && (
                     <img
                       src={news.image_url}
                       alt={news.title}
-                      className="w-full h-48 object-cover"
+                      className="w-32 h-32 md:w-40 md:h-40 object-cover flex-shrink-0"
                       onError={(e) => {
                         e.target.style.display = "none";
                       }}
                     />
                   )}
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded">
-                        {news.category || "Genel"}
-                      </span>
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2">
+                        {news.title || "Başlık Yok"}
+                      </h3>
+                      {news.summary && (
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {news.summary}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
                       {news.readDate && (
                         <span className="text-xs text-gray-500">
                           {new Date(news.readDate).toLocaleDateString("tr-TR")}
                         </span>
                       )}
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2">
-                      {news.title || "Başlık Yok"}
-                    </h3>
-                    {news.summary && (
-                      <p className="text-sm text-gray-600 line-clamp-3 mb-3">
-                        {news.summary}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">
-                        {news.readTime || "3"} dk okuma
-                      </span>
                       <span className="text-red-600 text-sm font-semibold hover:text-red-700">
                         Devamını Oku →
                       </span>
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
