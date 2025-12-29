@@ -25,9 +25,17 @@ const validateImageUrl = (url) => {
 function NewsFeed() {
   const { user, loading: authLoading } = useAuth();
   const location = useLocation();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    // Sayfa yüklendiğinde sessionStorage'dan index'i yükle
+    const savedIndex = sessionStorage.getItem('newsFeed_index');
+    return savedIndex ? parseInt(savedIndex, 10) : 0;
+  });
   const [isScrolling, setIsScrolling] = useState(false);
-  const [newsData, setNewsData] = useState([]);
+  const [newsData, setNewsData] = useState(() => {
+    // Sayfa yüklendiğinde sessionStorage'dan haber verilerini yükle
+    const savedData = sessionStorage.getItem('newsFeed_data');
+    return savedData ? JSON.parse(savedData) : [];
+  });
   const [loading, setLoading] = useState(true);
   const containerRef = useRef(null);
   const touchStartY = useRef(0);
@@ -38,6 +46,20 @@ function NewsFeed() {
   const cardViewStartTimes = useRef({}); // Her kart için başlangıç zamanı
   const cardInteractionData = useRef({}); // Her kart için interaction verileri (like, dislike, share, click_detail)
   const previousIndexRef = useRef(0);
+
+  // currentIndex değiştiğinde sessionStorage'a kaydet
+  useEffect(() => {
+    if (newsData.length > 0) {
+      sessionStorage.setItem('newsFeed_index', currentIndex.toString());
+    }
+  }, [currentIndex, newsData.length]);
+
+  // newsData değiştiğinde sessionStorage'a kaydet
+  useEffect(() => {
+    if (newsData.length > 0) {
+      sessionStorage.setItem('newsFeed_data', JSON.stringify(newsData));
+    }
+  }, [newsData]);
 
   // Navigasyon fonksiyonları - önce tanımlanmalı
   const goToNext = useCallback(() => {
@@ -374,6 +396,29 @@ function NewsFeed() {
     }
   }, [currentIndex, newsData.length]);
 
+  // SessionStorage'dan yüklendiğinde scroll pozisyonunu ayarla
+  useEffect(() => {
+    if (!loading && newsData.length > 0 && containerRef.current) {
+      const savedIndex = sessionStorage.getItem('newsFeed_index');
+      if (savedIndex !== null) {
+        const parsedIndex = parseInt(savedIndex, 10);
+        // Eğer currentIndex sessionStorage'daki index ile eşleşiyorsa scroll yap
+        if (currentIndex === parsedIndex) {
+          setTimeout(() => {
+            const items = containerRef.current?.querySelectorAll('.news-item');
+            if (items && items[parsedIndex]) {
+              console.log("📍 SessionStorage'dan yüklendikten sonra scroll:", parsedIndex);
+              items[parsedIndex].scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+              });
+            }
+          }, 300);
+        }
+      }
+    }
+  }, [loading, newsData.length, currentIndex]);
+
   // Scroll event listener - scroll snap sonrası currentIndex'i güncelle
   useEffect(() => {
     const container = containerRef.current;
@@ -422,17 +467,20 @@ function NewsFeed() {
     };
   }, [currentIndex, isScrolling, newsData.length]);
 
-  // Sayfa yüklendiğinde veya route değiştiğinde scroll'u en üste al ve state'leri sıfırla
+  // Route değiştiğinde (başka sayfaya gidildiğinde) sessionStorage'ı temizleme
+  // Sadece NewsFeed sayfasından tamamen çıkıldığında temizle, haber detay sayfasına gidildiğinde koru
   useEffect(() => {
-    // Scroll'u en üste al
-    if (containerRef.current) {
-      containerRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    // Eğer NewsFeed sayfasından başka bir sayfaya gidildiyse (haber detay hariç) sessionStorage'ı temizle
+    // Haber detay sayfası: /news/:id formatında
+    const isNewsDetailPage = /^\/news\/\d+/.test(location.pathname);
+    const isNewsFeedPage = location.pathname === '/news';
+    
+    if (!isNewsFeedPage && !isNewsDetailPage) {
+      // NewsFeed veya NewsDetail sayfasında değilse sessionStorage'ı temizle
+      sessionStorage.removeItem('newsFeed_data');
+      sessionStorage.removeItem('newsFeed_index');
     }
-    // State'leri sıfırla
-    setCurrentIndex(0);
-    setNewsData([]);
-    setLoading(true);
-  }, [location.pathname]); // Route değiştiğinde de çalışsın
+  }, [location.pathname]);
 
   // Sayfa yüklendiğinde Feed API çağrısı yap
   useEffect(() => {
@@ -443,7 +491,57 @@ function NewsFeed() {
         return;
       }
 
-      // Scroll'u en üste al
+      // SessionStorage'dan veri kontrolü
+      const savedData = sessionStorage.getItem('newsFeed_data');
+      const savedIndex = sessionStorage.getItem('newsFeed_index');
+      
+      if (savedData && savedIndex !== null) {
+        // SessionStorage'da veri varsa, API isteği atmadan yükle
+        try {
+          const parsedData = JSON.parse(savedData);
+          const parsedIndex = parseInt(savedIndex, 10);
+          
+          if (Array.isArray(parsedData) && parsedData.length > 0) {
+            console.log("📦 SessionStorage'dan haber verileri yüklendi, index:", parsedIndex);
+            setNewsData(parsedData);
+            setCurrentIndex(parsedIndex);
+            setLoading(false);
+            
+            // Kaldığı index'e scroll yap - DOM render edildikten sonra
+            setTimeout(() => {
+              if (containerRef.current) {
+                const items = containerRef.current.querySelectorAll('.news-item');
+                if (items[parsedIndex]) {
+                  console.log("📍 Index'e scroll yapılıyor:", parsedIndex);
+                  items[parsedIndex].scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                  });
+                } else {
+                  // Eğer items henüz render edilmemişse, biraz daha bekle
+                  setTimeout(() => {
+                    const retryItems = containerRef.current?.querySelectorAll('.news-item');
+                    if (retryItems && retryItems[parsedIndex]) {
+                      console.log("📍 Retry: Index'e scroll yapılıyor:", parsedIndex);
+                      retryItems[parsedIndex].scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                      });
+                    }
+                  }, 300);
+                }
+              }
+            }, 200);
+            return; // API isteği atma
+          }
+        } catch (error) {
+          console.error("SessionStorage veri parse hatası:", error);
+          // Hata durumunda devam et, API'den çek
+        }
+      }
+
+      // SessionStorage'da veri yoksa veya hatalıysa API'den çek
+      // Scroll'u en üste al (yeni veri geldiğinde)
       if (containerRef.current) {
         containerRef.current.scrollTo({ top: 0, behavior: 'instant' });
       }
@@ -556,13 +654,16 @@ function NewsFeed() {
         console.error("Feed API error:", error);
       } finally {
         setLoading(false);
-        // Veriler yüklendikten sonra scroll'u en üste al
-        setTimeout(() => {
-          if (containerRef.current) {
-            containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-          setCurrentIndex(0);
-        }, 100);
+        // Veriler yüklendikten sonra scroll'u en üste al (sadece yeni veri geldiğinde)
+        // SessionStorage'dan yüklenmediyse
+        if (!savedData || !savedIndex) {
+          setTimeout(() => {
+            if (containerRef.current) {
+              containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            setCurrentIndex(0);
+          }, 100);
+        }
       }
     };
 
