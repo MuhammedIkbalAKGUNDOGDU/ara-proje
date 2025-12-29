@@ -23,7 +23,7 @@ const validateImageUrl = (url) => {
 };
 
 function NewsFeed() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const location = useLocation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
@@ -575,6 +575,33 @@ function NewsFeed() {
 
     fetchFeed();
   }, [user]);
+
+  // Giriş kontrolü - localStorage'dan kontrol et
+  const checkAuth = () => {
+    const customerId = localStorage.getItem("customerId");
+    const token = localStorage.getItem("token");
+    return !!(customerId && token);
+  };
+
+  // Auth yüklenene kadar bekle
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-600 text-xl">Yükleniyor...</div>
+      </div>
+    );
+  }
+
+  // Giriş yapılmamışsa mesaj göster
+  if (!checkAuth() || !user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-gray-600 text-xl mb-4">Lütfen giriş yapın</div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
