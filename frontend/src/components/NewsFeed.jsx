@@ -352,13 +352,6 @@ function NewsFeed() {
     previousIndexRef.current = currentIndex;
   }, [currentIndex, newsData, sendInteractionAPI, sendTrackReadAPI]);
 
-  // Share callback - NewsCard'dan çağrılacak
-  const handleShare = useCallback((newsId) => {
-    if (cardInteractionData.current[newsId]) {
-      cardInteractionData.current[newsId].share = "yes";
-    }
-  }, []);
-
   // Haber detay sayfasına gidildiğinde click_detail'i işaretle
   const handleCardClick = useCallback((newsId) => {
     if (cardInteractionData.current[newsId]) {
@@ -634,7 +627,6 @@ function NewsFeed() {
               isActive={index === currentIndex}
               onNext={goToNext}
               onPrevious={goToPrevious}
-              onShare={() => handleShare(news.id)}
               onCardClick={() => handleCardClick(news.id)}
             />
           </div>

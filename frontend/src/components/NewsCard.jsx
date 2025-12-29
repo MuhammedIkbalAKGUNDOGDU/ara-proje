@@ -124,7 +124,7 @@ const getCategoryGradient = (category) => {
   }
 };
 
-function NewsCard({ news, isActive, onNext, onPrevious, onShare, onCardClick }) {
+function NewsCard({ news, isActive, onNext, onPrevious, onCardClick }) {
   const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
   const cardViewStartTime = useRef(null);
