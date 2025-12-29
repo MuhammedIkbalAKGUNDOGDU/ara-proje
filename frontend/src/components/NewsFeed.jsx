@@ -348,6 +348,112 @@ function NewsFeed() {
     sessionStorage.setItem('newsFeed_clickedIndex', index.toString());
     console.log("📍 Haber tıklandı, index kaydedildi:", index);
   }, []);
+
+  // Akışı yenile butonu - sessionStorage'ı temizle ve yeni feed isteği at
+  const handleRefreshFeed = useCallback(async () => {
+    // SessionStorage'ı temizle
+    sessionStorage.removeItem('newsFeed_data');
+    sessionStorage.removeItem('newsFeed_index');
+    sessionStorage.removeItem('newsFeed_clickedIndex');
+    
+    // State'leri sıfırla
+    setNewsData([]);
+    setCurrentIndex(0);
+    setLoading(true);
+    
+    // Scroll'u en üste al
+    if (containerRef.current) {
+      containerRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    // Yeni feed isteği at
+    const userId = user?.id || localStorage.getItem("customerId");
+    const token = localStorage.getItem("token");
+
+    if (!userId || !token) {
+      console.warn("User ID veya token bulunamadı");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      console.log("🔄 Akış yenileniyor - Feed API Request:", {
+        url: `${FEED_API_BASE_URL}/feed/${userId}`,
+        method: "GET",
+      });
+
+      const response = await fetch(
+        `${FEED_API_BASE_URL}/feed/${userId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-KEY": API_KEY,
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const responseText = await response.text();
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch {
+        responseData = { message: responseText };
+      }
+
+      console.log("Feed API Response:", {
+        status: response.status,
+        statusText: response.statusText,
+        parsedData: responseData,
+      });
+
+      // API'den gelen verileri işle
+      if (response.ok && Array.isArray(responseData)) {
+        const formattedNews = responseData.map((item) => ({
+          id: item.id || Math.random().toString(36).substr(2, 9),
+          title: item.title || "Başlık Yok",
+          content: item.content || item.description || "İçerik bulunamadı.",
+          summary: item.summary || item.description || "",
+          image: validateImageUrl(item.image_url),
+          image_url: item.image_url || null,
+          category: item.category || "Genel",
+          author: "Lokum Haber",
+          publishDate: new Date().toLocaleDateString("tr-TR"),
+          readTime: "3 dk",
+          url: item.url || "#",
+        }));
+        
+        setNewsData(formattedNews);
+        setCurrentIndex(0);
+      } else if (
+        response.ok &&
+        responseData.data &&
+        Array.isArray(responseData.data)
+      ) {
+        const formattedNews = responseData.data.map((item) => ({
+          id: item.id || Math.random().toString(36).substr(2, 9),
+          title: item.title || "Başlık Yok",
+          content: item.content || item.description || "İçerik bulunamadı.",
+          summary: item.summary || item.description || "",
+          image: validateImageUrl(item.image_url),
+          image_url: item.image_url || null,
+          category: item.category || "Genel",
+          author: "Lokum Haber",
+          publishDate: new Date().toLocaleDateString("tr-TR"),
+          readTime: "3 dk",
+          url: item.url || "#",
+        }));
+        
+        setNewsData(formattedNews);
+        setCurrentIndex(0);
+      }
+    } catch (error) {
+      console.error("Feed API error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
   
   // Tıklanan index'e scroll yap - newsData yüklendikten sonra
   useEffect(() => {
@@ -769,6 +875,31 @@ function NewsFeed() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Akışı Yenile Butonu */}
+      <div className="fixed top-20 right-4 z-50 md:top-4 md:right-auto md:left-1/2 md:transform md:-translate-x-1/2">
+        <button
+          onClick={handleRefreshFeed}
+          disabled={loading}
+          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-red-600 to-rose-600 text-white text-sm font-semibold rounded-lg hover:from-red-700 hover:to-rose-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95"
+          title="Akışı Yenile"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          <span>{loading ? "Yenileniyor..." : "Akışı Yenile"}</span>
+        </button>
+      </div>
+
       <div
         ref={containerRef}
         className="news-container relative mx-auto w-full md:w-1/3"
