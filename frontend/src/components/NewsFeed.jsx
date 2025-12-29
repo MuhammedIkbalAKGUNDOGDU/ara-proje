@@ -306,9 +306,9 @@ function NewsFeed() {
           const interactionData = cardInteractionData.current[previousNews.id] || {};
           
           // Eğer detay sayfasına gidildiyse (click_detail: "yes"), NewsFeed'de API isteği gönderme
-          // Çünkü NewsDetail'de gönderilecek
+          // Çünkü NewsDetail'de gönderilecek (first spending time + second spending time ile)
           if (interactionData.clickDetail !== "yes") {
-            // Interaction API isteği gönder
+            // Kaydırırken haber değişirse API isteği gönder
             sendInteractionAPI(
               previousNews.id,
               previousNews.category || "general",
@@ -321,11 +321,14 @@ function NewsFeed() {
             
             // Track-read API isteği gönder
             sendTrackReadAPI(previousNews.id);
+            
+            // Sadece detay sayfasına gitmediyse verileri temizle
+            delete cardViewStartTimes.current[previousNews.id];
+            delete cardInteractionData.current[previousNews.id];
           }
-
-          // Önceki kartın verilerini temizle
-          delete cardViewStartTimes.current[previousNews.id];
-          delete cardInteractionData.current[previousNews.id];
+          // Eğer detay sayfasına gidildiyse, verileri temizleme
+          // Çünkü first spending time detay sayfasına state ile gönderildi
+          // ve detay sayfasından çıkınca tek seferde istek atılacak
         }
       }
     }
