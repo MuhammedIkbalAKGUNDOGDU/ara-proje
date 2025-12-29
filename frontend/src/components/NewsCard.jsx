@@ -124,7 +124,7 @@ const getCategoryGradient = (category) => {
   }
 };
 
-function NewsCard({ news, isActive, onNext, onPrevious, onCardClick }) {
+function NewsCard({ news, index, isActive, onNext, onPrevious, onCardClick }) {
   const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
   const cardViewStartTime = useRef(null);
@@ -180,6 +180,7 @@ function NewsCard({ news, isActive, onNext, onPrevious, onCardClick }) {
         newsId: news.id,
         category: news.category,
         newsData: news, // Tüm haber verisi
+        cardIndex: index, // Kartın index'i
       },
     });
   };

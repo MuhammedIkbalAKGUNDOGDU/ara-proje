@@ -40,7 +40,7 @@ function NewsFeed() {
   const containerRef = useRef(null);
   const touchStartY = useRef(0);
   const touchEndY = useRef(0);
-  const lastWheelTimeRef = useRef(0);
+  const isProgrammaticScrollRef = useRef(false); // Programatik scroll kontrolü için
   
   // Interaction tracking için refs
   const cardViewStartTimes = useRef({}); // Her kart için başlangıç zamanı
@@ -63,6 +63,7 @@ function NewsFeed() {
 
   // Navigasyon fonksiyonları - önce tanımlanmalı
   const goToNext = useCallback(() => {
+    isProgrammaticScrollRef.current = true;
     setCurrentIndex((prevIndex) => {
       if (prevIndex < newsData.length - 1) {
         setIsScrolling(true);
@@ -74,6 +75,7 @@ function NewsFeed() {
   }, [newsData.length]);
 
   const goToPrevious = useCallback(() => {
+    isProgrammaticScrollRef.current = true;
     setCurrentIndex((prevIndex) => {
       if (prevIndex > 0) {
         setIsScrolling(true);
@@ -159,45 +161,8 @@ function NewsFeed() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isScrolling, goToNext, goToPrevious]);
 
-  // Mouse wheel navigasyonu - scroll snap ile kontrollü geçiş
-  useEffect(() => {
-    const handleWheel = (e) => {
-      if (isScrolling) return;
-
-      const now = Date.now();
-      const timeSinceLastWheel = now - lastWheelTimeRef.current;
-      
-      // Throttle: 300ms'den kısa sürede birden fazla wheel event'i engelle
-      if (timeSinceLastWheel < 300) {
-        e.preventDefault();
-        return;
-      }
-      
-      lastWheelTimeRef.current = now;
-      
-      // Scroll yönüne göre bir sonraki/önceki karta geç
-      if (e.deltaY > 0) {
-        // Aşağı scroll
-        e.preventDefault();
-        goToNext();
-      } else if (e.deltaY < 0) {
-        // Yukarı scroll
-        e.preventDefault();
-        goToPrevious();
-      }
-    };
-
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener("wheel", handleWheel, { passive: false });
-    }
-
-    return () => {
-      if (container) {
-        container.removeEventListener("wheel", handleWheel);
-      }
-    };
-  }, [isScrolling, goToNext, goToPrevious]);
+  // Mouse wheel navigasyonu - doğal scroll'a izin ver, scroll event listener index'i güncelleyecek
+  // Wheel event handler kaldırıldı, scroll event listener mouse wheel scroll'unu da yakalayacak
 
   // Touch navigasyonu
   const handleTouchStart = (e) => {
@@ -374,16 +339,65 @@ function NewsFeed() {
     previousIndexRef.current = currentIndex;
   }, [currentIndex, newsData, sendInteractionAPI, sendTrackReadAPI]);
 
-  // Haber detay sayfasına gidildiğinde click_detail'i işaretle
-  const handleCardClick = useCallback((newsId) => {
+  // Haber detay sayfasına gidildiğinde click_detail'i işaretle ve index'i kaydet
+  const handleCardClick = useCallback((newsId, index) => {
     if (cardInteractionData.current[newsId]) {
       cardInteractionData.current[newsId].clickDetail = "yes";
     }
+    // Tıklanan kartın index'ini sessionStorage'a kaydet
+    sessionStorage.setItem('newsFeed_clickedIndex', index.toString());
+    console.log("📍 Haber tıklandı, index kaydedildi:", index);
   }, []);
-
-  // Scroll pozisyonunu güncelle - klavye ve programatik navigasyon için
+  
+  // Tıklanan index'e scroll yap - newsData yüklendikten sonra
   useEffect(() => {
-    if (containerRef.current && newsData.length > 0) {
+    if (!loading && newsData.length > 0 && containerRef.current) {
+      const clickedIndex = sessionStorage.getItem('newsFeed_clickedIndex');
+      
+      if (clickedIndex !== null) {
+        const targetIndex = parseInt(clickedIndex, 10);
+        
+        if (targetIndex >= 0 && targetIndex < newsData.length) {
+          // Biraz bekle ki DOM tam render olsun
+          setTimeout(() => {
+            const items = containerRef.current?.querySelectorAll('.news-item');
+            if (items && items[targetIndex]) {
+              console.log("📍 Tıklanan index'e scroll yapılıyor:", targetIndex);
+              setCurrentIndex(targetIndex);
+              
+              // Scroll yap
+              items[targetIndex].scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+              });
+              
+              // Index'i kullandıktan sonra temizle
+              sessionStorage.removeItem('newsFeed_clickedIndex');
+            } else {
+              // Retry - DOM henüz hazır değilse
+              setTimeout(() => {
+                const retryItems = containerRef.current?.querySelectorAll('.news-item');
+                if (retryItems && retryItems[targetIndex]) {
+                  console.log("📍 Retry: Tıklanan index'e scroll yapılıyor:", targetIndex);
+                  setCurrentIndex(targetIndex);
+                  retryItems[targetIndex].scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                  });
+                  sessionStorage.removeItem('newsFeed_clickedIndex');
+                }
+              }, 500);
+            }
+          }, 100);
+        }
+      }
+    }
+  }, [loading, newsData.length]);
+
+  // Scroll pozisyonunu güncelle - sadece programatik navigasyon için (klavye, touch)
+  // Mouse wheel scroll'unu engellememek için sadece programatik değişikliklerde çalışır
+  useEffect(() => {
+    if (containerRef.current && newsData.length > 0 && isProgrammaticScrollRef.current) {
       const items = containerRef.current.querySelectorAll('.news-item');
       if (items[currentIndex]) {
         setIsScrolling(true);
@@ -391,62 +405,124 @@ function NewsFeed() {
           behavior: "smooth",
           block: "start",
         });
-        setTimeout(() => setIsScrolling(false), 500);
+        setTimeout(() => {
+          setIsScrolling(false);
+          isProgrammaticScrollRef.current = false;
+        }, 500);
       }
     }
   }, [currentIndex, newsData.length]);
 
-  // SessionStorage'dan yüklendiğinde scroll pozisyonunu ayarla
-  useEffect(() => {
-    if (!loading && newsData.length > 0 && containerRef.current) {
-      const savedIndex = sessionStorage.getItem('newsFeed_index');
-      if (savedIndex !== null) {
-        const parsedIndex = parseInt(savedIndex, 10);
-        // Eğer currentIndex sessionStorage'daki index ile eşleşiyorsa scroll yap
-        if (currentIndex === parsedIndex) {
-          setTimeout(() => {
-            const items = containerRef.current?.querySelectorAll('.news-item');
-            if (items && items[parsedIndex]) {
-              console.log("📍 SessionStorage'dan yüklendikten sonra scroll:", parsedIndex);
-              items[parsedIndex].scrollIntoView({
-                behavior: 'smooth',
-                block: 'start',
-              });
-            }
-          }, 300);
-        }
-      }
-    }
-  }, [loading, newsData.length, currentIndex]);
 
-  // Scroll event listener - scroll snap sonrası currentIndex'i güncelle
+  // Intersection Observer ile görünür item'ı tespit et ve currentIndex'i güncelle
+  // Mouse wheel scroll'unu da yakalar
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || newsData.length === 0) return;
+
+    const items = container.querySelectorAll('.news-item');
+    if (items.length === 0) return;
+
+    // Her item için Intersection Observer oluştur
+    const observers = [];
+    const visibleItems = new Map(); // Her item için görünürlük durumu
+
+    const observerOptions = {
+      root: container,
+      rootMargin: '-40% 0px -40% 0px', // Viewport'un ortasındaki %20'lik alan
+      threshold: [0, 0.1, 0.5, 1.0]
+    };
+
+    const handleIntersection = (entries) => {
+      entries.forEach((entry) => {
+        const index = parseInt(entry.target.dataset.index, 10);
+        if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
+          // Item görünür ve yeterince görünür alanda
+          visibleItems.set(index, {
+            ratio: entry.intersectionRatio,
+            boundingClientRect: entry.boundingClientRect
+          });
+        } else {
+          visibleItems.delete(index);
+        }
+      });
+
+      // En çok görünür olan item'ı bul
+      if (visibleItems.size > 0) {
+        let maxRatio = 0;
+        let bestIndex = currentIndex;
+
+        visibleItems.forEach((data, index) => {
+          if (data.ratio > maxRatio) {
+            maxRatio = data.ratio;
+            bestIndex = index;
+          }
+        });
+
+        // Eğer farklı bir index bulunduysa güncelle
+        if (bestIndex !== currentIndex && bestIndex >= 0 && bestIndex < newsData.length) {
+          console.log("🖱️ Mouse scroll ile index güncellendi:", bestIndex, "ratio:", maxRatio);
+          setCurrentIndex(bestIndex);
+        }
+      }
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, observerOptions);
+
+    // Her item'ı observe et
+    items.forEach((item, index) => {
+      item.dataset.index = index.toString();
+      observer.observe(item);
+      observers.push({ item, observer });
+    });
+
+    return () => {
+      // Cleanup
+      observers.forEach(({ item, observer: obs }) => {
+        obs.unobserve(item);
+      });
+      observer.disconnect();
+    };
+  }, [newsData.length, currentIndex]);
+
+  // Scroll event listener - yedek mekanizma (Intersection Observer çalışmazsa)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || newsData.length === 0) return;
 
     let scrollTimeout;
+    let lastScrollTop = container.scrollTop;
+
     const handleScroll = () => {
-      if (isScrolling) return; // Programatik scroll sırasında çalışmasın
+      // isScrolling kontrolünü kaldırdık - mouse wheel scroll'unu yakalamak için
+      const currentScrollTop = container.scrollTop;
+      
+      // Scroll yönü değiştiyse veya yeterince scroll yapıldıysa kontrol et
+      if (Math.abs(currentScrollTop - lastScrollTop) < 10) return;
+      lastScrollTop = currentScrollTop;
 
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
         const items = container.querySelectorAll('.news-item');
+        if (items.length === 0) return;
+        
         const scrollTop = container.scrollTop;
         const containerHeight = container.clientHeight;
+        const viewportCenter = scrollTop + containerHeight / 2;
         
-        // Scroll snap ile hangi item görünür alanda
+        // Viewport'un ortasına en yakın item'ı bul
         let newIndex = 0;
-        const threshold = containerHeight * 0.5; // Viewport'un ortası
+        let minDistance = Infinity;
         
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
           const itemTop = item.offsetTop;
-          const itemBottom = itemTop + item.offsetHeight;
+          const itemCenter = itemTop + item.offsetHeight / 2;
+          const distance = Math.abs(viewportCenter - itemCenter);
           
-          // Item viewport'un ortasında mı?
-          if (scrollTop + threshold >= itemTop && scrollTop + threshold < itemBottom) {
+          if (distance < minDistance) {
+            minDistance = distance;
             newIndex = i;
-            break;
           }
         }
 
@@ -455,9 +531,10 @@ function NewsFeed() {
           newIndex >= 0 &&
           newIndex < newsData.length
         ) {
+          console.log("🖱️ Scroll event ile index güncellendi:", newIndex);
           setCurrentIndex(newIndex);
         }
-      }, 100); // 100ms debounce
+      }, 50); // Daha kısa debounce - mouse wheel için
     };
 
     container.addEventListener("scroll", handleScroll, { passive: true });
@@ -465,7 +542,7 @@ function NewsFeed() {
       container.removeEventListener("scroll", handleScroll);
       clearTimeout(scrollTimeout);
     };
-  }, [currentIndex, isScrolling, newsData.length]);
+  }, [currentIndex, newsData.length]);
 
   // Route değiştiğinde (başka sayfaya gidildiğinde) sessionStorage'ı temizleme
   // Sadece NewsFeed sayfasından tamamen çıkıldığında temizle, haber detay sayfasına gidildiğinde koru
@@ -479,6 +556,7 @@ function NewsFeed() {
       // NewsFeed veya NewsDetail sayfasında değilse sessionStorage'ı temizle
       sessionStorage.removeItem('newsFeed_data');
       sessionStorage.removeItem('newsFeed_index');
+      sessionStorage.removeItem('newsFeed_clickedIndex');
     }
   }, [location.pathname]);
 
@@ -507,31 +585,7 @@ function NewsFeed() {
             setCurrentIndex(parsedIndex);
             setLoading(false);
             
-            // Kaldığı index'e scroll yap - DOM render edildikten sonra
-            setTimeout(() => {
-              if (containerRef.current) {
-                const items = containerRef.current.querySelectorAll('.news-item');
-                if (items[parsedIndex]) {
-                  console.log("📍 Index'e scroll yapılıyor:", parsedIndex);
-                  items[parsedIndex].scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start',
-                  });
-                } else {
-                  // Eğer items henüz render edilmemişse, biraz daha bekle
-                  setTimeout(() => {
-                    const retryItems = containerRef.current?.querySelectorAll('.news-item');
-                    if (retryItems && retryItems[parsedIndex]) {
-                      console.log("📍 Retry: Index'e scroll yapılıyor:", parsedIndex);
-                      retryItems[parsedIndex].scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start',
-                      });
-                    }
-                  }, 300);
-                }
-              }
-            }, 200);
+            // Scroll işlemi ayrı useEffect'te yapılacak (tıklanan index için)
             return; // API isteği atma
           }
         } catch (error) {
@@ -725,10 +779,11 @@ function NewsFeed() {
           <div key={news.id} className="news-item">
             <NewsCard
               news={news}
+              index={index}
               isActive={index === currentIndex}
               onNext={goToNext}
               onPrevious={goToPrevious}
-              onCardClick={() => handleCardClick(news.id)}
+              onCardClick={() => handleCardClick(news.id, index)}
             />
           </div>
         ))}
