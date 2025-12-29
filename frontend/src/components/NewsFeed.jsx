@@ -510,7 +510,7 @@ function NewsFeed() {
             image: validateImageUrl(item.image_url), // Geçersiz URL'ler null olacak, NewsCard default görsel kullanacak
             image_url: item.image_url || null, // Orijinal image_url'i koru
             category: item.category || "Genel",
-            author: "Haber Kaynağı",
+            author: "Lokum Haber",
             publishDate: new Date().toLocaleDateString("tr-TR"),
             readTime: "3 dk",
             url: item.url || "#",
@@ -541,7 +541,7 @@ function NewsFeed() {
             image: validateImageUrl(item.image_url), // Geçersiz URL'ler null olacak, NewsCard default görsel kullanacak
             image_url: item.image_url || null, // Orijinal image_url'i koru
             category: item.category || "Genel",
-            author: "Haber Kaynağı",
+            author: "Lokum Haber",
             publishDate: new Date().toLocaleDateString("tr-TR"),
             readTime: "3 dk",
             url: item.url || "#",
