@@ -132,6 +132,18 @@ function Profile() {
           parsedData: data,
         });
 
+        // API yanıtındaki kategorileri detaylı konsola yazdır
+        if (data.categories && Array.isArray(data.categories)) {
+          console.log("API'den gelen kategoriler:", data.categories);
+          data.categories.forEach((cat, index) => {
+            console.log(`Kategori ${index + 1}:`, {
+              category: cat.category,
+              score: cat.score,
+              tümObje: cat
+            });
+          });
+        }
+
         // Kategorileri normalize et (toplam %100 olacak şekilde)
         let normalizedCategories = [];
         if (data.categories && Array.isArray(data.categories)) {
@@ -815,27 +827,8 @@ function Profile() {
                       ];
                       const color = colors[index % colors.length];
                       
-                      // Kategori ismini Türkçe'ye çevir
-                      const categoryNames = {
-                        economy: "Ekonomi",
-                        science: "Bilim",
-                        travel: "Seyahat",
-                        movie: "Film",
-                        book: "Kitap",
-                        nature: "Doğa",
-                        technology: "Teknoloji",
-                        sports: "Spor",
-                        music: "Müzik",
-                        food: "Yemek",
-                        game: "Oyun",
-                        education: "Eğitim",
-                        art: "Sanat",
-                        fashion: "Moda",
-                        photography: "Fotoğraf",
-                        health: "Sağlık"
-                      };
-                      
-                      const categoryName = categoryNames[category.category] || category.category;
+                      // Kategori ismini API'den geldiği gibi kullan (category.category)
+                      const categoryName = category.category || "Bilinmeyen";
                       
                       return (
                         <div key={index} className="flex items-center space-x-4">
@@ -930,26 +923,8 @@ function Profile() {
                         ];
                         const color = colors[index % colors.length];
                         
-                        const categoryNames = {
-                          economy: "Ekonomi",
-                          science: "Bilim",
-                          travel: "Seyahat",
-                          movie: "Film",
-                          book: "Kitap",
-                          nature: "Doğa",
-                          technology: "Teknoloji",
-                          sports: "Spor",
-                          music: "Müzik",
-                          food: "Yemek",
-                          game: "Oyun",
-                          education: "Eğitim",
-                          art: "Sanat",
-                          fashion: "Moda",
-                          photography: "Fotoğraf",
-                          health: "Sağlık"
-                        };
-                        
-                        const categoryName = categoryNames[category.category] || category.category;
+                        // Kategori ismini API'den geldiği gibi kullan (category.category)
+                        const categoryName = category.category || "Bilinmeyen";
                         
                         return (
                           <div key={index} className="flex items-center space-x-2">
@@ -972,33 +947,8 @@ function Profile() {
                 <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                   <div className="space-y-3">
                     {recommendations.normalizedCategories.map((category, index) => {
-                      const categoryNames = {
-                        economy: "Ekonomi",
-                        science: "Bilim",
-                        travel: "Seyahat",
-                        movie: "Film",
-                        book: "Kitap",
-                        nature: "Doğa",
-                        technology: "Teknoloji",
-                        sports: "Spor",
-                        music: "Müzik",
-                        food: "Yemek",
-                        game: "Oyun",
-                        education: "Eğitim",
-                        art: "Sanat",
-                        fashion: "Moda",
-                        photography: "Fotoğraf",
-                        health: "Sağlık",
-                        business: "İş Dünyası",
-                        entertainment: "Eğlence",
-                        politics: "Politika",
-                        crime: "Suç",
-                        environment: "Çevre",
-                        lifestyle: "Yaşam Tarzı",
-                        tourism: "Turizm"
-                      };
-                      
-                      const categoryName = categoryNames[category.category] || category.category;
+                      // Kategori ismini API'den geldiği gibi kullan (category.category)
+                      const categoryName = category.category || "Bilinmeyen";
                       const score = category.score || 0;
                       
                       return (
