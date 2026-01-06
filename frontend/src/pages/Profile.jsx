@@ -387,6 +387,36 @@ function Profile() {
     }
   };
   
+  // Kategori isimlerini Türkçe'ye çeviren fonksiyon
+  const getCategoryName = (categoryKey) => {
+    const categoryNames = {
+      economy: "Ekonomi",
+      science: "Bilim",
+      travel: "Seyahat",
+      movie: "Film",
+      book: "Kitap",
+      nature: "Doğa",
+      technology: "Teknoloji",
+      sports: "Spor",
+      music: "Müzik",
+      food: "Yemek",
+      game: "Oyun",
+      education: "Eğitim",
+      art: "Sanat",
+      fashion: "Moda",
+      photography: "Fotoğraf",
+      health: "Sağlık",
+      business: "İş Dünyası",
+      entertainment: "Eğlence",
+      politics: "Politika",
+      crime: "Suç",
+      environment: "Çevre",
+      lifestyle: "Yaşam Tarzı",
+      tourism: "Turizm"
+    };
+    return categoryNames[categoryKey] || categoryKey || "Bilinmeyen";
+  };
+
   // Kullanıcı bilgilerini API'den gelen data'dan al
   const userInfo = accountData || {};
   const name = userInfo.name || "";
@@ -827,8 +857,8 @@ function Profile() {
                       ];
                       const color = colors[index % colors.length];
                       
-                      // Kategori ismini API'den geldiği gibi kullan (category.category)
-                      const categoryName = category.category || "Bilinmeyen";
+                      // Kategori ismini Türkçe'ye çevir
+                      const categoryName = getCategoryName(category.category);
                       
                       return (
                         <div key={index} className="flex items-center space-x-4">
@@ -923,8 +953,8 @@ function Profile() {
                         ];
                         const color = colors[index % colors.length];
                         
-                        // Kategori ismini API'den geldiği gibi kullan (category.category)
-                        const categoryName = category.category || "Bilinmeyen";
+                        // Kategori ismini Türkçe'ye çevir
+                        const categoryName = getCategoryName(category.category);
                         
                         return (
                           <div key={index} className="flex items-center space-x-2">
@@ -947,8 +977,8 @@ function Profile() {
                 <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                   <div className="space-y-3">
                     {recommendations.normalizedCategories.map((category, index) => {
-                      // Kategori ismini API'den geldiği gibi kullan (category.category)
-                      const categoryName = category.category || "Bilinmeyen";
+                      // Kategori ismini Türkçe'ye çevir
+                      const categoryName = getCategoryName(category.category);
                       const score = category.score || 0;
                       
                       return (
